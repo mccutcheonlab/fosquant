@@ -1,22 +1,53 @@
+
 import os
+from PIL import Image, ImageOps, ImageEnhance
 
 import cellpose
+
+def make_folder(foldername, parent_directory):
+    try:
+        path = os.path.join(parent_directory, foldername)
+        os.mkdir(path)
+    except FileExistsError:
+        print("{} already exists!".format(path))
+
+def convert_to_lowres(image_file):
+        image_file_gray = ImageOps.grayscale(image_file)
+        image_file_invert = ImageOps.invert(image_file_gray)
+        image_file_contrast = ImageEnhance.Contrast(image_file_invert).enhance(10)
+
+        return image_file_contrast
 
 def project_setup():
     # maybe don't ask for folder or if folder not given just run in the current directory
     current_working_directory = os.getcwd()
     print("Setting up project in {}".format(current_working_directory))
 
+    basename = os.path.split(current_working_directory)[-1]
+
     # check if folder has rawdata folder, examine files and print message. if not exit.
-    # create variable for naming files based on folder name
+    filenames = os.listdir()
+    if "rawdata" in filenames:
+        rawdatafiles = os.listdir("rawdata")
+        print(rawdatafiles)
+        # TODO examine files, print how many
+    else:
+        print("Cannot find folder with rawdata.")
+        return
 
-    # make folder for lowres
-    # fill with converted lowres images
-    # write separate function to do this
+    make_folder("lowres", current_working_directory)
 
-    # make folder for cell counts
+    # TODO convert rawdata files to lowres
+    for file in rawdatafiles:
+        image_in = os.path.join(current_working_directory, "rawdata", file)
+        image_out = os.path.join(current_working_directory, "lowres", "LR_{}".format(file))
 
-    # make folder for nutil
+        converted_image = convert_to_lowres(Image.open(image_in))
+        converted_image.save(image_out, quality=2)
+
+    make_folder("cellcounts", current_working_directory)
+
+    make_folder("nutil", current_working_directory)
 
 # def cell_counts():
     
