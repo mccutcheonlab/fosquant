@@ -1,8 +1,6 @@
-
 import os
-from PIL import Image, ImageOps, ImageEnhance
 
-import cellpose
+from PIL import Image, ImageOps, ImageEnhance
 
 def make_folder(foldername, parent_directory):
     try:
@@ -29,8 +27,7 @@ def project_setup():
     filenames = os.listdir()
     if "rawdata" in filenames:
         rawdatafiles = os.listdir("rawdata")
-        print(rawdatafiles)
-        # TODO examine files, print how many
+        # TODO examine files, print how many, could check that fos and trap files match in number, suffix etc
     else:
         print("Cannot find folder with rawdata.")
         return
@@ -46,23 +43,15 @@ def project_setup():
         converted_image.save(image_out, quality=2)
 
     make_folder("cellcounts", current_working_directory)
+    make_folder("trap", "cellcounts")
+    make_folder("fos", "cellcounts")
+    for file in rawdatafiles:
+        if "fos" in file:
+            os.system("copy {} {}".format(os.path.join("rawdata", file), os.path.join("cellcounts", "fos", file)))
+        elif "trap" in file:
+            os.system("copy {} {}".format(os.path.join("rawdata", file), os.path.join("cellcounts", "trap", file)))
 
     make_folder("nutil", current_working_directory)
-
-# def cell_counts():
-    
-#     # use cellpose to do cell counts
-
-# def prepare_masks():
-
-#     # work out overlaps between fos and trapped cells and create three mask files, save in nutil folder
-
-# def run_nutil():
-
-#     # create .nut files
-#     # use subprocess to run nutil from command line
-
-#     # have option to create plots by calling separate plotting function
 
 if __name__ == "__main__":
     project_setup()

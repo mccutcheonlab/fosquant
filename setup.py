@@ -1,6 +1,6 @@
 from setuptools import find_packages, setup
 
 setup(
-    name='src',
+    name='fosquant',
     packages=find_packages(),
 )
