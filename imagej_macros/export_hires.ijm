@@ -1,64 +1,57 @@
 var parent = "";
 var basename = "";
 
-var series_hires = 8;
-var channel = 1;
+var series_hires = 11;
+var channel_hires = 2;
 
 macro "Export hires [H]" {
 	// test if there is an open image and ROIs and if ROIs are named correctly
 	// add dialog for channel and invert and rotate
-	
-//	if (basename == "") {
-//		parent = getInfo("image.directory");
-//		filename = getInfo("image.filename");
-//		basename = replace(filename, ".vsi", "");
-//	}
-	path = File.openDialog("Please pick a .vsi file");
+
+//	path = File.openDialog("Please pick a .vsi file");
+	path = "C:/Github/fosquant/data/FTP01_A2.vsi";
 	parent = File.getParent(path);
 	vsiName = File.getName(path);
 	basename = replace(vsiName, ".vsi", "");
 	
-	run("Bio-Formats", "open=[path] autoscale color_mode=Default rois_import=[ROI manager] view=Hyperstack stack_order=XYCZT series_" + series_hires);
+	Dialog.create("Choose options");
+	Dialog.addNumber("Series", series_hires);
+	Dialog.addNumber("Channel", channel_hires);
+	Dialog.show();
 	
-//	Stack.setChannel(channel);
-//	scaleFactor = pow(2, (13 - series_hires));
-//
-//	n = roiManager("count");
-//	for (i = 0; i < n; i++) {
-//		roiManager("select", i);
-//		run("Scale... ", "x=&scaleFactor y=&scaleFactor");
-//		roiManager("update");
-//	}
-//	
-//	array = newArray(n);
-//	  for (i=0; i<array.length; i++) {
-//	      array[i] = i;
-//	  }
-//	
-//	OutDir = "C:/Github/fosquant/data/lowresmulti/";
-//	roiManager("Select", array);
-//	RoiManager.multiCrop(OutDir, " show");
-//	roiManager("List");
-//	
-//	for (i = 0; i < n; i++) {
-//		ROIName=getResultString("Name", i, "Overlay Elements of CROPPED_ROI Manager");
-//		selectWindow("CROPPED_ROI Manager");
-//		setSlice(i+1);
-//		run("Duplicate...", "title="+basename+"_"+ROIName);
-//		saveAs("jpg", OutDir+basename+"_"+ROIName);
-//		close();
-//	}
-//	
+	outDir = parent + File.separator + "chan" + channel_hires;
+	if (!File.exists(outDir)) {
+		File.makeDirectory(parent + File.separator + "chan" + channel_hires);
+	}
+	
+	series_hires = Dialog.getNumber();
+	channel_hires = Dialog.getNumber();
+	
+	scaleFactor = pow(2, (13 - series_hires));
+	s = series_hires;
+	
+	roiManager("List");
+	n = roiManager("count");
+	
+	for (i = 0; i < n; i++) {	
+		roiName = getResultString("Name", i);
+		xPos = getResult("X", i) * scaleFactor;
+		yPos = getResult("Y", i) * scaleFactor;
+		width = getResult("Width", i) * scaleFactor;
+		height = getResult("Height", i) * scaleFactor;
+		
+		open_string = " series_" + s + " x_coordinate_" + s + "=" + xPos + " y_coordinate_" + s + "=" + yPos + " width_" + s + "=" + width + " height_" + s + "=" + height;
+		run("Bio-Formats", "open=[path] autoscale color_mode=Default crop rois_import=[ROI manager] view=Hyperstack stack_order=XYCZT" + open_string);
+		
+		Stack.setChannel(channel_hires);
+		run("Rotate 90 Degrees Right");
+		saveAs("jpg", outDir + File.separator + basename + "_" +roiName);
+		close();
+	}
+
 //	close("*");
 //	close("Overlay Elements of CROPPED_ROI Manager");
 //	close("ROI Manager");
-
-
-
-//	hiresDir = parent + File.separator + "lowres"; // need to check whether this works
-//	if (!File.exists(hiresDir)) {
-//    	exit("Unable to create directory");
-//	}
 
 
 }

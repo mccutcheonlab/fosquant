@@ -1,5 +1,7 @@
-var parent = ""
-var basename = ""
+var parent = "";
+var basename = "";
+
+channel_lowres = 1;
 
 macro "Export lowres [L]" {
 	// test if there is an open image and ROIs and if ROIs are named correctly
@@ -11,11 +13,14 @@ macro "Export lowres [L]" {
 		basename = replace(filename, ".vsi", "");
 	}
 	
-	lowresDir = parent + File.separator + "lowres"; // need to check whether this works
-	if (!File.exists(lowresDir)) {
-    	exit("Unable to create directory");
+	channel_lowres = getNumber("Channel", 1);
+	
+	outDir = parent + File.separator + "lowres";
+	if (!File.exists(outDir)) {
+		File.makeDirectory(parent + File.separator + "lowres");
 	}
 	
+	Stack.setChannel(channel_lowres);
 	run("Duplicate...", "title=inverted");
 	run("8-bit");
 	run("Invert LUT");
@@ -33,8 +38,7 @@ macro "Export lowres [L]" {
 	    
 	    run("Crop");
 	    run("Rotate 90 Degrees Right");
-		savefile = lowresDir + File.separator + basename + "_lowres" + sectionNumber + ".jpg";
-		print(savefile);
+		savefile = outDir + File.separator + basename + "_lowres" + sectionNumber + ".jpg";
 	    saveAs("Jpeg", savefile);
     	close();
 	}
