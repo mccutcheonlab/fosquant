@@ -3,6 +3,7 @@ var basename = ""
 
 macro "Export lowres [L]" {
 	// test if there is an open image and ROIs and if ROIs are named correctly
+	// add dialog for channel and invert and rotate
 	
 	if (basename == "") {
 		parent = getInfo("image.directory");
