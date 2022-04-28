@@ -9,12 +9,17 @@ def make_folder(foldername, parent_directory):
     except FileExistsError:
         print("{} already exists!".format(path))
 
-def convert_to_lowres(image_file):
-        image_file_gray = ImageOps.grayscale(image_file)
-        image_file_invert = ImageOps.invert(image_file_gray)
-        image_file_contrast = ImageEnhance.Contrast(image_file_invert).enhance(10)
+def convert_to_lowres(image_in):
+    image_gray = ImageOps.grayscale(image_in)
+    image_invert = ImageOps.invert(image_gray)
+    image_contrast = ImageEnhance.Contrast(image_invert).enhance(10)
 
-        return image_file_contrast
+    return image_contrast
+
+def convert_for_cellcounts(image_in, factor=2):
+    width, height = image_in.size
+    image_out = image_in.resize([int(width/factor), int(height/factor)], Image.ANTIALIAS)
+    return image_out
 
 def project_setup():
     # maybe don't ask for folder or if folder not given just run in the current directory
@@ -43,15 +48,14 @@ def project_setup():
         converted_image.save(image_out, quality=2)
 
     make_folder("cellcounts", current_working_directory)
-    make_folder("trap", "cellcounts")
-    make_folder("fos", "cellcounts")
     for file in rawdatafiles:
-        if "fos" in file:
-            os.system("copy {} {}".format(os.path.join("rawdata", file), os.path.join("cellcounts", "fos", file)))
-        elif "trap" in file:
-            os.system("copy {} {}".format(os.path.join("rawdata", file), os.path.join("cellcounts", "trap", file)))
+        image_in = os.path.join(current_working_directory, "rawdata", file)
+        image_out = convert_for_cellcounts(Image.open(image_in))
+        image_out.save(os.path.join("cellcounts", file))
 
     make_folder("nutil", current_working_directory)
 
 if __name__ == "__main__":
     project_setup()
+
+# TODO possible arguments to add, (1) resize factor
