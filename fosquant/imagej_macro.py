@@ -1,20 +1,20 @@
 # %%
 
 import imagej
-ij = imagej.init()
+# ij = imagej.init()
+ij = imagej.init('net.imagej:imagej+net.imagej:imagej-legacy')
 
-image_url = 'https://imagej.net/images/clown.jpg'
-jimage = ij.io().open(image_url)
+# image_url = 'https://imagej.net/images/clown.jpg'
+# jimage = ij.io().open(image_url)
 
 # Convert the image from ImageJ2 to xarray, a package that adds
 # labeled datasets to numpy (http://xarray.pydata.org/en/stable/).
-image = ij.py.from_java(jimage)
+# image = ij.py.from_java(jimage)
 
 # Display the image (backed by matplotlib).
-ij.py.show(image, cmap='gray')
-# %%
+# ij.py.show(image, cmap='gray')
 
-# ij.py.run_macro("D://Test Data//histology//fostrappilot//fistrapmacro.ijm")
+ij.py.run_macro("..//imagej_macros//scratch scripts.ijm")
 # %%
 
 macro = """
@@ -48,3 +48,6 @@ ijImage = ij.io().open(file)
 image_url = 'https://imagej.net/images/clown.jpg'
 jimage = ij.io().open(image_url)
 # %%
+
+# command line
+# ImageJ-win64.exe -macro ./export_hires.ijm
