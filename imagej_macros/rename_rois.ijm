@@ -22,8 +22,3 @@ macro "Rename ROIs [R]" {
 	    roiManager("rename", sectionNumber)
 	}
 }
-
-//	lowresDir = getDir("cwd") + "lowres" + File.separator; // need to check whether this works
-//	if (!File.exists(lowresDir)) {
-//    	exit("Unable to create directory");
-// 		run("Duplicate...", "title=crop");

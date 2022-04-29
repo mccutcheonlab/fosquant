@@ -1,23 +1,39 @@
 var parent = "";
 var basename = "";
 
-channel_lowres = 1;
+var rotation = "180 Degrees";
+
+var series_lowres = 11;
+var channel_lowres = 2;
 
 macro "Export lowres [L]" {
 	// test if there is an open image and ROIs and if ROIs are named correctly
 	// add dialog for channel and invert and rotate
+		
+	rotationItems = newArray("None", "Rotate 90 Degrees Left", "Rotate 90 Degrees Right", "180 Degrees");
 	
-	if (basename == "") {
-		parent = getInfo("image.directory");
-		filename = getInfo("image.filename");
-		basename = replace(filename, ".vsi", "");
-	}
-	
-	channel_lowres = getNumber("Channel", 1);
+	Dialog.create("Choose options");
+	Dialog.addNumber("Series", series_lowres);
+	Dialog.addNumber("Channel", channel_lowres);
+	Dialog.addChoice("Rotation", rotationItems); 
+	Dialog.show();
+
+	series_lowres = Dialog.getNumber();
+	channel_lowres = Dialog.getNumber();
+	rotation = Dialog.getChoice();
 	
 	outDir = parent + File.separator + "lowres";
 	if (!File.exists(outDir)) {
 		File.makeDirectory(parent + File.separator + "lowres");
+	}
+	
+	if (basename == "") {
+		//	path = File.openDialog("Please pick a .vsi file");
+		path = "C:/Github/fosquant/data/FTP01_A2.vsi";
+		parent = File.getParent(path);
+		vsiName = File.getName(path);
+		basename = replace(vsiName, ".vsi", "");
+		run("Bio-Formats", "open=[path] autoscale color_mode=Default rois_import=[ROI manager] view=Hyperstack stack_order=XYCZT series_" + series_lowres);
 	}
 	
 	Stack.setChannel(channel_lowres);
@@ -26,18 +42,27 @@ macro "Export lowres [L]" {
 	run("Invert LUT");
 	
 	id = getImageID();
-	print(id);
 	
 	n = roiManager("count");
 	for (i = 0; i < n; i++) {
 		selectImage(id);
-		run("Select None");
 		run("Duplicate...", "title=crop");
 	    roiManager("select", i);
 	    sectionNumber = Roi.getName();
 	    
 	    run("Crop");
-	    run("Rotate 90 Degrees Right");
+	    
+	    if (rotation == "180 Degrees") {
+			run("Rotate 90 Degrees Left");
+			run("Rotate 90 Degrees Left");
+		}
+		else if (rotation == "Rotate 90 Degrees Left") {
+			run("Rotate 90 Degrees Left");
+		}
+		else if (rotation == "Rotate 90 Degrees Right") {
+			run("Rotate 90 Degrees Right")
+		}
+
 		savefile = outDir + File.separator + basename + "_lowres" + sectionNumber + ".jpg";
 	    saveAs("Jpeg", savefile);
     	close();
