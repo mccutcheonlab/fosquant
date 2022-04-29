@@ -1,5 +1,5 @@
-var channel_lores = 1;
-var series_lores = 13;
+var channel_lowres = 1;
+var series_lowres = 13;
 
 var channel_hires = 2;
 var series_hires = 11;
@@ -16,12 +16,12 @@ var startSection = 0;
 macro "Open vsi [O]" {
 	
 	Dialog.create("Choose options");
-	Dialog.addNumber("Series", series_lores);
-	Dialog.addNumber("Channel", channel_lores);
+	Dialog.addNumber("Series", series_lowres);
+	Dialog.addNumber("Channel", channel_lowres);
 	Dialog.show();
 	
-	series_lores = Dialog.getNumber();
-	channel_lores = Dialog.getNumber();
+	series_lowres = Dialog.getNumber();
+	channel_lowres = Dialog.getNumber();
 	
 	path = File.openDialog("Please pick a .vsi file");
 	parent = File.getParent(path);
@@ -29,7 +29,7 @@ macro "Open vsi [O]" {
 	basename = replace(vsiName, ".vsi", "");
 	roipath = parent + File.separator + basename + "_ROIs.zip";
 	
-	run("Bio-Formats", "open=[path] autoscale color_mode=Default rois_import=[ROI manager] view=Hyperstack stack_order=XYCZT series_" + series_lores);
+	run("Bio-Formats", "open=[path] autoscale color_mode=Default rois_import=[ROI manager] view=Hyperstack stack_order=XYCZT series_" + series_lowres);
 	// work out how to select channel
 	// run("Split Channels");
 	// selectWindow("C" + channel "-" vsiName + " - " + vsiName + " #" + series);
@@ -86,7 +86,8 @@ macro "Load ROIs [L]" {
 	
 }
 
-macro "Export lowres [L]" {
+
+macro "Export lowres [E]" {
 	// test if there is an open image and ROIs and if ROIs are named correctly
 	// add dialog for channel and invert and rotate
 		
@@ -102,19 +103,31 @@ macro "Export lowres [L]" {
 	channel_lowres = Dialog.getNumber();
 	rotation = Dialog.getChoice();
 	
+//	if (!isOpen("*")) {
+//		print("There should not be a file open");
+//		path = File.openDialog("Please pick a .vsi file");
+//		// path = "C:/Github/fosquant/data/FTP01_A2.vsi";
+//		parent = File.getParent(path);
+//		vsiName = File.getName(path);
+//		basename = replace(vsiName, ".vsi", "");
+//		run("Bio-Formats", "open=[path] autoscale color_mode=Default rois_import=[ROI manager] view=Hyperstack stack_order=XYCZT series_" + series_lowres);
+//	}
+//	
+//	else {
+//		print("There should be a file open")
+//		parent = getInfo("image.directory");
+//	}
+	
+	parent = getInfo("image.directory");
+	vsiName = getInfo("image.filename");
+	basename = replace(vsiName, ".vsi", "");
+	
 	outDir = parent + File.separator + "lowres";
+	print(outDir);
 	if (!File.exists(outDir)) {
 		File.makeDirectory(parent + File.separator + "lowres");
 	}
-	
-	if (basename == "") {
-		path = File.openDialog("Please pick a .vsi file");
-		parent = File.getParent(path);
-		vsiName = File.getName(path);
-		basename = replace(vsiName, ".vsi", "");
-		run("Bio-Formats", "open=[path] autoscale color_mode=Default rois_import=[ROI manager] view=Hyperstack stack_order=XYCZT series_" + series_lowres);
-	}
-	
+
 	Stack.setChannel(channel_lowres);
 	run("Duplicate...", "title=inverted");
 	run("8-bit");

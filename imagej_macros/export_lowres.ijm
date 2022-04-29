@@ -6,7 +6,7 @@ var rotation = "180 Degrees";
 var series_lowres = 11;
 var channel_lowres = 2;
 
-macro "Export lowres [L]" {
+macro "Export lowres [E]" {
 	// test if there is an open image and ROIs and if ROIs are named correctly
 	// add dialog for channel and invert and rotate
 		
@@ -22,20 +22,31 @@ macro "Export lowres [L]" {
 	channel_lowres = Dialog.getNumber();
 	rotation = Dialog.getChoice();
 	
+//	if (!isOpen("*")) {
+//		print("There should not be a file open");
+//		path = File.openDialog("Please pick a .vsi file");
+//		// path = "C:/Github/fosquant/data/FTP01_A2.vsi";
+//		parent = File.getParent(path);
+//		vsiName = File.getName(path);
+//		basename = replace(vsiName, ".vsi", "");
+//		run("Bio-Formats", "open=[path] autoscale color_mode=Default rois_import=[ROI manager] view=Hyperstack stack_order=XYCZT series_" + series_lowres);
+//	}
+//	
+//	else {
+//		print("There should be a file open")
+//		parent = getInfo("image.directory");
+//	}
+	
+	parent = getInfo("image.directory");
+	vsiName = getInfo("image.filename");
+	basename = replace(vsiName, ".vsi", "");
+	
 	outDir = parent + File.separator + "lowres";
+	print(outDir);
 	if (!File.exists(outDir)) {
 		File.makeDirectory(parent + File.separator + "lowres");
 	}
-	
-	if (basename == "") {
-		//	path = File.openDialog("Please pick a .vsi file");
-		path = "C:/Github/fosquant/data/FTP01_A2.vsi";
-		parent = File.getParent(path);
-		vsiName = File.getName(path);
-		basename = replace(vsiName, ".vsi", "");
-		run("Bio-Formats", "open=[path] autoscale color_mode=Default rois_import=[ROI manager] view=Hyperstack stack_order=XYCZT series_" + series_lowres);
-	}
-	
+
 	Stack.setChannel(channel_lowres);
 	run("Duplicate...", "title=inverted");
 	run("8-bit");
