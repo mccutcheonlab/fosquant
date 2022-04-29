@@ -4,6 +4,8 @@ var series_lores = 13;
 var channel_hires = 2;
 var series_hires = 11;
 
+var rotation = "180 Degrees";
+
 var parent = "";
 var basename = "";
 
@@ -60,6 +62,7 @@ macro "Rename ROIs [R]" {
 	    roiManager("rename", sectionNumber)
 	}
 }
+
 
 macro "Save ROIs [S]" {
 	
@@ -131,23 +134,28 @@ macro "Export hires [H]" {
 	// add dialog for channel and invert and rotate
 
 	path = File.openDialog("Please pick a .vsi file");
+
 	parent = File.getParent(path);
 	vsiName = File.getName(path);
 	basename = replace(vsiName, ".vsi", "");
 	
+	rotationItems = newArray("None", "Rotate 90 Degrees Left", "Rotate 90 Degrees Right", "180 Degrees");
+	
 	Dialog.create("Choose options");
 	Dialog.addNumber("Series", series_hires);
 	Dialog.addNumber("Channel", channel_hires);
+	Dialog.addChoice("Rotation", rotationItems); 
 	Dialog.show();
+	
+	series_hires = Dialog.getNumber();
+	channel_hires = Dialog.getNumber();
+	rotation = Dialog.getChoice();
 	
 	outDir = parent + File.separator + "chan" + channel_hires;
 	if (!File.exists(outDir)) {
 		File.makeDirectory(parent + File.separator + "chan" + channel_hires);
 	}
-	
-	series_hires = Dialog.getNumber();
-	channel_hires = Dialog.getNumber();
-	
+
 	scaleFactor = pow(2, (13 - series_hires));
 	s = series_hires;
 	
@@ -165,9 +173,87 @@ macro "Export hires [H]" {
 		run("Bio-Formats", "open=[path] autoscale color_mode=Default crop rois_import=[ROI manager] view=Hyperstack stack_order=XYCZT" + open_string);
 		
 		Stack.setChannel(channel_hires);
-		run("Rotate 90 Degrees Right");
+		if (rotation == "180 Degrees") {
+			run("Rotate 90 Degrees Left");
+			run("Rotate 90 Degrees Left");
+		}
+		else if (rotation == "Rotate 90 Degrees Left") {
+			run("Rotate 90 Degrees Left");
+		}
+		else if (rotation == "Rotate 90 Degrees Right") {
+			run("Rotate 90 Degrees Right")
+		}
+
 		saveAs("jpg", outDir + File.separator + basename + "_" +roiName);
 		close();
 	}
+}
+
+var num = 3;
+var width = 250;
+var height = 250;
+var channel = 1;
+var seed = 101279;
+
+macro "Make crops [M]" {
+	
+	Dialog.create("Choose options");
+	Dialog.addNumber("Number", num);
+	Dialog.addNumber("Width (px)", width);
+	Dialog.addNumber("Height (px)", height);
+	Dialog.addNumber("Channel", channel);
+	Dialog.addNumber("Random seed", seed);
+	Dialog.show();
+
+	num = Dialog.getNumber();
+	width = Dialog.getNumber();
+	height = Dialog.getNumber();
+	channel = Dialog.getNumber();
+	seed = Dialog.getNumber();
+	
+	parent = getDirectory("Please pick a directory with images.");
+	
+	outDir = parent + File.separator + "crops";
+	if (!File.exists(outDir)) {
+		File.makeDirectory(parent + File.separator + "crops");
+	}
+	
+	files = getFileList(parent);
+	nFiles = files.length;
+	
+	random("seed", seed);
+	
+	for (i=0; i<num; i++) {
+		shuffle(files);
+		file = parent + files[0];
+		open(file);
+
+		w = getWidth();
+		h = getHeight();
+		
+		xPos = randomInt(w - width);
+		yPos = randomInt(h - height);
+		
+		makeRectangle(xPos, yPos, width, height);
+		run("Crop");
+		saveAs("jpg", outDir + File.separator + seed + "_" + i);
+		close();
+	}
+
+function shuffle(array) {
+   n = array.length;  // The number of items left to shuffle (loop invariant).
+   while (n > 1) {
+      k = randomInt(n);     // 0 <= k < n.
+      n--;                  // n is now the last pertinent index;
+      temp = array[n];  // swap array[n] with array[k] (does nothing if k==n).
+      array[n] = array[k];
+      array[k] = temp;
+   }
+}
+
+// returns a random number, 0 <= k < n
+function randomInt(n) {
+   return n * random();
+}
 
 }

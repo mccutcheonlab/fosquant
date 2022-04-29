@@ -4,6 +4,8 @@ var basename = "";
 var series_hires = 11;
 var channel_hires = 2;
 
+var rotation = "180 Degrees";
+
 macro "Export hires [H]" {
 	// test if there is an open image and ROIs and if ROIs are named correctly
 	// add dialog for channel and invert and rotate
@@ -14,19 +16,23 @@ macro "Export hires [H]" {
 	vsiName = File.getName(path);
 	basename = replace(vsiName, ".vsi", "");
 	
+	rotationItems = newArray("None", "Rotate 90 Degrees Left", "Rotate 90 Degrees Right", "180 Degrees");
+	
 	Dialog.create("Choose options");
 	Dialog.addNumber("Series", series_hires);
 	Dialog.addNumber("Channel", channel_hires);
+	Dialog.addChoice("Rotation", rotationItems); 
 	Dialog.show();
+	
+	series_hires = Dialog.getNumber();
+	channel_hires = Dialog.getNumber();
+	rotation = Dialog.getChoice();
 	
 	outDir = parent + File.separator + "chan" + channel_hires;
 	if (!File.exists(outDir)) {
 		File.makeDirectory(parent + File.separator + "chan" + channel_hires);
 	}
-	
-	series_hires = Dialog.getNumber();
-	channel_hires = Dialog.getNumber();
-	
+
 	scaleFactor = pow(2, (13 - series_hires));
 	s = series_hires;
 	
@@ -44,13 +50,23 @@ macro "Export hires [H]" {
 		run("Bio-Formats", "open=[path] autoscale color_mode=Default crop rois_import=[ROI manager] view=Hyperstack stack_order=XYCZT" + open_string);
 		
 		Stack.setChannel(channel_hires);
-		run("Rotate 90 Degrees Right");
+		if (rotation == "180 Degrees") {
+			run("Rotate 90 Degrees Left");
+			run("Rotate 90 Degrees Left");
+		}
+		else if (rotation == "Rotate 90 Degrees Left") {
+			run("Rotate 90 Degrees Left");
+		}
+		else if (rotation == "Rotate 90 Degrees Right") {
+			run("Rotate 90 Degrees Right")
+		}
+
 		saveAs("jpg", outDir + File.separator + basename + "_" +roiName);
 		close();
 	}
 
-//	close("*");
-//	close("Overlay Elements of CROPPED_ROI Manager");
+	close("*");
+	close("Overlay Elements of CROPPED_ROI Manager");
 //	close("ROI Manager");
 
 
