@@ -10,8 +10,8 @@ macro "Export hires [H]" {
 	// test if there is an open image and ROIs and if ROIs are named correctly
 	// add dialog for channel and invert and rotate
 
-//	path = File.openDialog("Please pick a .vsi file");
-	path = "C:/Github/fosquant/data/FTP01_A2.vsi";
+	path = File.openDialog("Please pick a .vsi file");
+//	path = "C:/Github/fosquant/data/FTP01_A2.vsi";
 	parent = File.getParent(path);
 	vsiName = File.getName(path);
 	basename = replace(vsiName, ".vsi", "");
@@ -48,8 +48,20 @@ macro "Export hires [H]" {
 		
 		open_string = " series_" + s + " x_coordinate_" + s + "=" + xPos + " y_coordinate_" + s + "=" + yPos + " width_" + s + "=" + width + " height_" + s + "=" + height;
 		run("Bio-Formats", "open=[path] autoscale color_mode=Default crop rois_import=[ROI manager] view=Hyperstack stack_order=XYCZT" + open_string);
+
+		windowName = getTitle();
+		run("Split Channels");
+		selectWindow("C" + channel_hires + "-" + windowName);
+
+		run("EDF Easy mode", "quality='4' topology='1' show-topology='off' show-view='off'");
+			
+		while (nImages =< 4) {
+			// Waits for plugin to complete
+		}
 		
-		Stack.setChannel(channel_hires);
+		selectWindow("Output");		
+						
+//		Stack.setChannel(channel_hires);
 		if (rotation == "180 Degrees") {
 			run("Rotate 90 Degrees Left");
 			run("Rotate 90 Degrees Left");
@@ -60,9 +72,9 @@ macro "Export hires [H]" {
 		else if (rotation == "Rotate 90 Degrees Right") {
 			run("Rotate 90 Degrees Right")
 		}
-
+		
 		saveAs("jpg", outDir + File.separator + basename + "_" +roiName);
-		close();
+		close("*");
 	}
 
 	close("*");
