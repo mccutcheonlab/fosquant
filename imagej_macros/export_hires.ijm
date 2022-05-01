@@ -52,16 +52,17 @@ macro "Export hires [H]" {
 		windowName = getTitle();
 		run("Split Channels");
 		selectWindow("C" + channel_hires + "-" + windowName);
-
-		run("EDF Easy mode", "quality='4' topology='1' show-topology='off' show-view='off'");
-			
-		while (nImages =< 4) {
-			// Waits for plugin to complete
-		}
-		
-		selectWindow("Output");		
+//
+//		run("EDF Easy mode", "quality='4' topology='1' show-topology='off' show-view='off'");
+//			
+//		while (nImages <= 3) {
+//			// Waits for plugin to complete
+//		}
+//		
+//		selectWindow("Output");		
 						
-//		Stack.setChannel(channel_hires);
+		run("Z Project...", "projection=[Max Intensity]");
+		
 		if (rotation == "180 Degrees") {
 			run("Rotate 90 Degrees Left");
 			run("Rotate 90 Degrees Left");

@@ -60,6 +60,9 @@ macro "Make crops from .vsi [V]" {
 		selectWindow("C" + channel_crop + "-" + windowName);
 		
 		run("EDF Easy mode", "quality='4' topology='1' show-topology='off' show-view='off'");
+		while (nImages <= 3) {
+			
+		}
 
 		selectWindow("Output");
 		saveAs("jpg", outDir + File.separator + seed + "_" + i);
