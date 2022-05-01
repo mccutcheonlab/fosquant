@@ -7,6 +7,7 @@ var channel_hires = 2;
 var rotation = "180 Degrees";
 
 macro "Export hires [H]" {
+	setBatchMode(true);
 	// test if there is an open image and ROIs and if ROIs are named correctly
 	// add dialog for channel and invert and rotate
 
@@ -39,19 +40,21 @@ macro "Export hires [H]" {
 	roiManager("List");
 	n = roiManager("count");
 	
-	for (i = 0; i < n; i++) {	
+	for (i = 0; i < n; i++) {
+		tStart = getTime();
 		roiName = getResultString("Name", i);
 		xPos = getResult("X", i) * scaleFactor;
 		yPos = getResult("Y", i) * scaleFactor;
 		width = getResult("Width", i) * scaleFactor;
 		height = getResult("Height", i) * scaleFactor;
+		print("Dimensions are: ", width, "x", height);
 		
 		open_string = " series_" + s + " x_coordinate_" + s + "=" + xPos + " y_coordinate_" + s + "=" + yPos + " width_" + s + "=" + width + " height_" + s + "=" + height;
 		run("Bio-Formats", "open=[path] autoscale color_mode=Default crop rois_import=[ROI manager] view=Hyperstack stack_order=XYCZT" + open_string);
 
-		windowName = getTitle();
-		run("Split Channels");
-		selectWindow("C" + channel_hires + "-" + windowName);
+//		windowName = getTitle();
+//		run("Split Channels");
+//		selectWindow("C" + channel_hires + "-" + windowName);
 //
 //		run("EDF Easy mode", "quality='4' topology='1' show-topology='off' show-view='off'");
 //			
@@ -60,8 +63,8 @@ macro "Export hires [H]" {
 //		}
 //		
 //		selectWindow("Output");		
-						
-		run("Z Project...", "projection=[Max Intensity]");
+//						
+//		run("Z Project...", "projection=[Max Intensity]");
 		
 		if (rotation == "180 Degrees") {
 			run("Rotate 90 Degrees Left");
@@ -71,16 +74,21 @@ macro "Export hires [H]" {
 			run("Rotate 90 Degrees Left");
 		}
 		else if (rotation == "Rotate 90 Degrees Right") {
-			run("Rotate 90 Degrees Right")
+			run("Rotate 90 Degrees Right");
 		}
 		
-		saveAs("jpg", outDir + File.separator + basename + "_" +roiName);
+//		saveAs("jpg", outDir + File.separator + basename + "_" +roiName);
+		save(outDir + File.separator + basename + "_" +roiName);
+
 		close("*");
+		tEnd = getTime();
+		tTaken = (tEnd - tStart) / 1000;
+		print("Time taken", tTaken);
 	}
 
 	close("*");
 	close("Overlay Elements of CROPPED_ROI Manager");
 //	close("ROI Manager");
 
-
+setBatchMode(false);
 }
