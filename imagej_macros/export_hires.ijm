@@ -92,3 +92,5 @@ macro "Export hires [H]" {
 
 setBatchMode(false);
 }
+
+// time taken to open and save as tiff on GPU machine, series 9 = 72 s
