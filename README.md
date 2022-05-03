@@ -51,7 +51,14 @@ Run cellpose with appropriate trained models
 
 STEP 6 ()
 
+## Ideas
+start to time steps on server, laptop, GPU
+save a couple of sections already opened and cropped from bioformats (as TIFFs) for testing
 
+
+## Useful sites
+For using GPU and extended depth of focus in ImageJ
+https://forum.image.sc/t/patchy-extend-depth-of-focus-using-clij/65090/4
 
 
 
