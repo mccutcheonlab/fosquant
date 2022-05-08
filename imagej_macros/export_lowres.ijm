@@ -2,25 +2,27 @@ var parent = "";
 var basename = "";
 
 var rotation = "180 Degrees";
+var invertImage = false;
 
 var series_lowres = 11;
 var channel_lowres = 2;
 
 macro "Export lowres [E]" {
 	// test if there is an open image and ROIs and if ROIs are named correctly
-	// add dialog for channel and invert and rotate
 		
 	rotationItems = newArray("None", "Rotate 90 Degrees Left", "Rotate 90 Degrees Right", "180 Degrees");
 	
 	Dialog.create("Choose options");
 	Dialog.addNumber("Series", series_lowres);
 	Dialog.addNumber("Channel", channel_lowres);
-	Dialog.addChoice("Rotation", rotationItems); 
+	Dialog.addChoice("Rotation", rotationItems);
+	Dialog.addCheckbox("Invert", invertImage);
 	Dialog.show();
 
 	series_lowres = Dialog.getNumber();
 	channel_lowres = Dialog.getNumber();
 	rotation = Dialog.getChoice();
+	invertImage = Dialog.getCheckbox();
 	
 //	if (!isOpen("*")) {
 //		print("There should not be a file open");
@@ -46,11 +48,16 @@ macro "Export lowres [E]" {
 	if (!File.exists(outDir)) {
 		File.makeDirectory(parent + File.separator + "lowres");
 	}
-
+	
+	run("Select None");
+	
 	Stack.setChannel(channel_lowres);
 	run("Duplicate...", "title=inverted");
 	run("8-bit");
-	run("Invert LUT");
+	
+	if invertImage == true {
+		run("Invert LUT");
+	}
 	
 	id = getImageID();
 	

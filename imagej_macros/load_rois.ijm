@@ -1,11 +1,18 @@
 
-var roipath = ""
+var roipath = "";
+var roiScaleFactor = 1;
 
 macro "Load ROIs [L]" {
-	// could add command to automatically load if an ROI file can be found
 	path = File.openDialog("Please pick a file with ROIs");
-//	path = "C:/Github/fosquant/data/FTP01_A2_ROIs.zip"
+	roiScaleFactor = getNumber("Enter scaling factor for ROIs", 1);
+
 	roiManager("open", path);
-	roiManager("show all with labels");
 	
+	n = roiManager("count");
+	for (i = 0; i < n; i++) {
+		roiManager("Select", i);
+		run("Scale... ", "x=" + roiScaleFactor + " y=" + roiScaleFactor);
+		roiManager("update");
+	}
+	roiManager("show all with labels");
 }
