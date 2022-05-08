@@ -55,7 +55,7 @@ macro "Export lowres [E]" {
 	run("Duplicate...", "title=inverted");
 	run("8-bit");
 	
-	if invertImage == true {
+	if (invertImage == true) {
 		run("Invert LUT");
 	}
 	
