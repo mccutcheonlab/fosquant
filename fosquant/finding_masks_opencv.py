@@ -15,7 +15,7 @@ trap_jpg = folder + "crop_trap_hyp.jpg"
 from skimage import io
 folder = "D:\\Test Data\\histology\\demo_FT122\\test_crops_for_coloc\\"
 
-fos_png = folder + "crop_fos_hypo_cp_masks.png"
+fos_png = folder + "FT122_2A_chan2__s018_cp_masks.png"
 im = io.imread(fos_png)
 
 fos_array = np.zeros(np.shape(im))
@@ -24,7 +24,7 @@ for props in regions:
     y0, x0 = props.centroid
     fos_array[int(y0), int(x0)] = 1
 
-trap_png = folder + "crop_trap_hyp_cp_masks.png"
+trap_png = folder + "FT122_2A_chan3__s018_cp_masks.png"
 im = io.imread(trap_png)
 n_trap_cells = np.max(im)
 trap_array = im*10
@@ -53,5 +53,5 @@ for trap_cell_idx in range(1,n_trap_cells):
 
 fos_output = (fos_array - (coloc_output)) * 3
 
-
+io.imsave(folder + "coloc_output.png", coloc_output)
 io.imsave(folder + "fos_output.png", fos_output)
