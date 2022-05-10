@@ -2,6 +2,9 @@
 	"folders": [
 		{
 			"path": "."
+		},
+		{
+			"path": "..\\..\\Users\\jmc010\\Miniconda3\\envs\\cellpose\\Lib\\site-packages\\cellpose"
 		}
 	],
 	"settings": {}
