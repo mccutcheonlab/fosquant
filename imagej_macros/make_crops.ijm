@@ -1,7 +1,6 @@
 var num = 3;
 var width = 250;
 var height = 250;
-var channel = 1;
 var seed = 101279;
 
 macro "Make crops [M]" {
@@ -10,18 +9,16 @@ macro "Make crops [M]" {
 	Dialog.addNumber("Number", num);
 	Dialog.addNumber("Width (px)", width);
 	Dialog.addNumber("Height (px)", height);
-	Dialog.addNumber("Channel", channel);
 	Dialog.addNumber("Random seed", seed);
 	Dialog.show();
 
 	num = Dialog.getNumber();
 	width = Dialog.getNumber();
 	height = Dialog.getNumber();
-	channel = Dialog.getNumber();
 	seed = Dialog.getNumber();
 	
-//	parent = getDirectory("Please pick a directory with images.");
-	parent = "C:/Github/fosquant/data/lowresmulti/";
+	parent = getDirectory("Please pick a directory with images.");
+//	parent = "C:/Github/fosquant/data/lowresmulti/";
 	
 	outDir = parent + File.separator + "crops";
 	if (!File.exists(outDir)) {
