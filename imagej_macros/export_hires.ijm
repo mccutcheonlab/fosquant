@@ -3,13 +3,15 @@ var basename = "";
 
 var series_hires = 9;
 
+var rotation = "180 Degrees";
+
 var channel_1 = false;
 var channel_2 = true;
 var channel_3 = true;
 
-var rotation = "180 Degrees";
-
-var saveTiffs = false;
+var	saveJPEG = true;
+var	savePNG = false;
+var	saveTIFF = false;
 
 macro "Export hires [H]" {
 	setBatchMode(true);
@@ -21,14 +23,19 @@ macro "Export hires [H]" {
 	basename = replace(vsiName, ".vsi", "");
 	
 	rotationItems = newArray("None", "Rotate 90 Degrees Left", "Rotate 90 Degrees Right", "180 Degrees");
+	saveOptions = newArray("TIFF", "PNG", "JPG");
 	
 	Dialog.create("Choose options");
 	Dialog.addNumber("Series", series_hires);
 	Dialog.addCheckbox("Channel 1", channel_1);
 	Dialog.addCheckbox("Channel 2", channel_2);
 	Dialog.addCheckbox("Channel 3", channel_3);
-	Dialog.addChoice("Rotation", rotationItems); 
-	Dialog.addCheckbox("Save TIFFs?", saveTiffs);
+	Dialog.addChoice("Rotation", rotationItems);
+	
+	Dialog.addMessage("File formats to save as");
+	Dialog.addCheckbox("JPEG", saveJPEG);
+	Dialog.addCheckbox("PNG", savePNG);
+	Dialog.addCheckbox("TIFF", saveTIFF);
 	Dialog.show();
 	
 	series_hires = Dialog.getNumber();
@@ -36,7 +43,10 @@ macro "Export hires [H]" {
 	channel_2 = Dialog.getCheckbox();
 	channel_3 = Dialog.getCheckbox();
 	rotation = Dialog.getChoice();
-	saveTiffs = Dialog.getCheckbox();
+	
+	saveJPEG = Dialog.getCheckbox();
+	savePNG = Dialog.getCheckbox();
+	saveTIFF = Dialog.getCheckbox();
 	
 	channelArray = newArray(channel_1, channel_2, channel_3);
 	for (c=0; c<3; c++) {
@@ -67,7 +77,7 @@ macro "Export hires [H]" {
 		open_string = " series_" + s + " x_coordinate_" + s + "=" + xPos + " y_coordinate_" + s + "=" + yPos + " width_" + s + "=" + width + " height_" + s + "=" + height;
 		run("Bio-Formats", "open=[path] autoscale color_mode=Default crop rois_import=[ROI manager] view=Hyperstack stack_order=XYCZT" + open_string);
 		
-		if (saveTiffs == true) {
+		if (saveTIFF == true) {
 			tiffDir = parent + File.separator + "raw_tiffs";
 			if (!File.exists(tiffDir)) {
 				File.makeDirectory(tiffDir);
@@ -119,8 +129,13 @@ macro "Export hires [H]" {
 				
 				newName = basename + "_chan" + workingChannel + "_" + roiName;
 				
-				saveAs("jpg", outDir + File.separator + newName);
-
+				if (saveJPEG == true) {
+					saveAs("jpg", outDir + File.separator + newName);
+				}
+				if (savePNG == true) {
+					saveAs("png", outDir + File.separator + newName);
+				}
+				
 				tEnd = getTime();
 				tTaken = (tEnd - tStart) / 1000;
 				print("Time taken", tTaken);
@@ -129,9 +144,8 @@ macro "Export hires [H]" {
 	close("*");
 	}
 	close("Overlay Elements of CROPPED_ROI Manager");
-//	close("ROI Manager");
+	close("ROI Manager");
 
 setBatchMode(false);
 }
-
 // time taken to open and save as tiff on GPU machine, series 9 = 72 s
