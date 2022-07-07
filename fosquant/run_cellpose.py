@@ -1,11 +1,10 @@
 import os
 
-import matplotlib.pyplot as plt
 import numpy as np
 from cellpose import io, models
 from PIL import Image
 
-def process_large_images(filename, model):
+def process_large_images(filename, model, diameter):
     img = Image.open(filename)
     width, height = img.size
 
@@ -19,7 +18,7 @@ def process_large_images(filename, model):
 
     pretrained_model = model
     channels = [0,0]
-    diameter = 10
+    diameter = diameter
     resample=True
 
     model = models.CellposeModel(gpu=True, model_type=pretrained_model)
@@ -41,12 +40,13 @@ if __name__ == "__main__":
     folder = os.getcwd()
 
     image_files = [os.path.join(folder, f) for f in os.listdir(folder) if f.endswith("jpg")]
-    model = "/home/jaime/Data/cellpose_models/CP_20220504_trap"
+    model = "/home/jaime/Data/cellpose_models/CP_20220504_fos"
+    diameter = 10
 
     for filename in image_files:
 
         print(filename)
-        process_large_images(filename, model)
+        process_large_images(filename, model, diameter)
 
 
 

@@ -1,30 +1,40 @@
 # %%
 import os
 import numpy as np
-import matplotlib as mpl
-import matplotlib.pyplot as plt
+# import matplotlib as mpl
+# import matplotlib.pyplot as plt
 
 from PIL import Image
 
-folder = "D:\\Test Data\\histology\\demo_FT122\\test_crops_for_coloc\\"
-file = "crop_trap_vp_cp_masks.png"
-original = np.array(Image.open(folder+file), dtype="int8")
+def convert_for_nutil(full_filename):
 
-nutil_masks = np.where(original > 0, 255, 0)
-# masks_8bit = np.array(nutil_masks, dtype="int8")
+	original = np.array(Image.open(full_filename), dtype="int8")
 
-# print(type(masks_8bit))
+	nutil_masks = np.where(original > 0, 255, 0)
+	# masks_8bit = np.array(nutil_masks, dtype="int8")
 
-savefile = Image.fromarray(nutil_masks)
-savename = folder + file.split(".")[0] + "_nutil.png"
-savefile.save(savename, format="png", bits="I;8")
+	# print(type(masks_8bit))
 
-# mpl.image.imsave(savename, nutil_masks)
+	savefile = Image.fromarray(nutil_masks)
+	savename = folder + file.split(".")[0] + "_nutil.png"
+	savefile.save(savename, format="png", bits="I;8")
 
-f, ax = plt.subplots(ncols=2)
-ax[0].imshow(original)
-ax[1].imshow(nutil_masks)
+	# mpl.image.imsave(savename, nutil_masks)
 
+	# f, ax = plt.subplots(ncols=2)
+	# ax[0].imshow(original)
+	# ax[1].imshow(nutil_masks)
+
+if __name__ == "__main__":
+
+    folder = os.getcwd()
+
+    image_files = [os.path.join(folder, f) for f in os.listdir(folder) if f.endswith("cp_masks.png")]
+
+    for filename in image_files:
+
+        print(filename)
+        convert_for_nutil(os.path.join(folder, filename))
 
 
 # %%

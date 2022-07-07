@@ -24,6 +24,17 @@ Loads ROIs if not already loaded
 ## STEP 2 (prepare hi-res images for cell counts) (maybe do on server for speed)
 
 Macro - Save Hi_Res
+
+Current instructions - 
+(work out what scaling factor, lowres series should be, currently lowres=10, hires=9, scale=2 but could change in future)
+Load ROI file (choose scaling factor 2)
+Run Export Hires macro (not from macro set but from edit macro window).
+Check options, probably select 180 degree turn
+Make sure output jpegs look good
+
+In future, auto select ROI file and scale factors etc by looking at dimensions
+
+
 Run macro to load ROIs - ask for folder, search for ROI files, ask about series #, ask about scaling factor (but have defaults set), then open .vsi of appropriate resolution, then make new directory and save hi-res sections for cell counts
 
 make sure it saves or displays a picture showing ROIs before confirming the save/export
@@ -43,11 +54,17 @@ Run cellpose with appropriate trained models
 
 [earlier step, develop models with cropped images]
 
+For files that cause cellpose to fail, move into separate folder (e.g. "big") and try running using run_cellpose.py (need to move it into the folder with remaining images, adjust model and diameter in script)
+
+Attn! Not working with fos diameter set to 7.87 - works with 10 but not sure how accurate it will be
+
 ## STEP 5 (atlas alignment)
+
+Linnea has a protocol set up and working
 
 
 ## STEP 6 (nutil counts)
-
+Use export_for_nutil.ijm (imageJ macro) to convert PNGs to binary for Nutil
 
 STEP 6 ()
 

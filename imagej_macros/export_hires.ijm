@@ -1,6 +1,7 @@
 var parent = "";
 var basename = "";
 
+var series_lores = 10;
 var series_hires = 9;
 
 var rotation = "180 Degrees";
@@ -26,7 +27,8 @@ macro "Export hires [H]" {
 	saveOptions = newArray("TIFF", "PNG", "JPG");
 	
 	Dialog.create("Choose options");
-	Dialog.addNumber("Series", series_hires);
+	Dialog.addNumber("Series for lores", series_lores);
+	Dialog.addNumber("Series for hires", series_hires);
 	Dialog.addCheckbox("Channel 1", channel_1);
 	Dialog.addCheckbox("Channel 2", channel_2);
 	Dialog.addCheckbox("Channel 3", channel_3);
@@ -38,6 +40,7 @@ macro "Export hires [H]" {
 	Dialog.addCheckbox("TIFF", saveTIFF);
 	Dialog.show();
 	
+	series_lores = Dialog.getNumber();
 	series_hires = Dialog.getNumber();
 	channel_1 = Dialog.getCheckbox();
 	channel_2 = Dialog.getCheckbox();
@@ -59,7 +62,7 @@ macro "Export hires [H]" {
 		}
 	}
 
-	scaleFactor = pow(2, (13 - series_hires));
+	scaleFactor = pow(2, (series_lores - series_hires));
 	s = series_hires;
 	
 	roiManager("List");
@@ -106,7 +109,7 @@ macro "Export hires [H]" {
 				output = "ext" + workingChannel;
 				radius_x = 2.0;
 				radius_y = 2.0;
-				sigma = 10.0; 
+				sigma = 10.0;
 				
 				Ext.CLIJ2_extendedDepthOfFocusVarianceProjection(input, output, radius_x, radius_y, sigma);
 				
@@ -145,6 +148,8 @@ macro "Export hires [H]" {
 	}
 	close("Overlay Elements of CROPPED_ROI Manager");
 	close("ROI Manager");
+	
+	print("Finished running!");
 
 setBatchMode(false);
 }

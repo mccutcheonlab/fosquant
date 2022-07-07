@@ -1,7 +1,7 @@
-var num = 3;
+var num = 20;
 var width = 250;
 var height = 250;
-var seed = 101279;
+var seed = 201279;
 
 macro "Make crops [M]" {
 	
