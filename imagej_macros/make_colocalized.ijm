@@ -4,8 +4,9 @@ macro "Make Colocalized Images [M]" {
 	chan1Dir = getDirectory("Please pick a directory with masked PNGs for first channel.");
 	chan2Dir = getDirectory("Please pick a directory with masked PNGs for second channel.");
 	
-	parent = File.getParent(chan1Dir);
-	colocDir = parent + File.separator + "coloc";
+	parent = File.getParent(File.getParent(chan1Dir));
+	print(parent);
+	colocDir = parent + File.separator + "chan_coloc";
 			if (!File.exists(colocDir)) {
 				File.makeDirectory(colocDir);
 			}
@@ -25,14 +26,15 @@ macro "Make Colocalized Images [M]" {
 			chan2SectionNumber = getSectionNumber(chan2Files[j]);
 			if (chan2SectionNumber == currentSectionNumber) {
 				print(currentSectionNumber, "is go go go");
-				open(chan1Files[i]);
+				open(chan1Dir + File.separator + chan1Files[i]);
 				chan1Img = getImageID();
 				open(chan2Files[j]);
 				chan2Img = getImageID();
 				imageCalculator("AND create", chan1Img, chan2Img);
 				run("Analyze Particles...", "size=10-Infinity circularity=0.20-1.00 show=Masks display clear include composite");
 				maskImg = getImageID();
-				saveAs("png", chan1Dir + File.separator + "coloc_s" + currentSectionNumber);
+				run("Invert LUT");
+				saveAs("png", colocDir + File.separator + "coloc_s" + currentSectionNumber);
 			}
 		}
 //		open(chan1Files[i]);
