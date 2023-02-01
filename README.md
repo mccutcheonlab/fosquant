@@ -33,6 +33,17 @@ Loads ROIs if not already loaded
 ## STEP 2 (prepare hi-res images for cell counts) (maybe do on server for speed)
 
 Macro - Save Hi_Res
+
+Current instructions - 
+(work out what scaling factor, lowres series should be, currently lowres=10, hires=9, scale=2 but could change in future)
+Load ROI file (choose scaling factor 2)
+Run Export Hires macro (not from macro set but from edit macro window).
+Check options, probably select 180 degree turn
+Make sure output jpegs look good
+
+In future, auto select ROI file and scale factors etc by looking at dimensions
+
+
 Run macro to load ROIs - ask for folder, search for ROI files, ask about series #, ask about scaling factor (but have defaults set), then open .vsi of appropriate resolution, then make new directory and save hi-res sections for cell counts
 
 make sure it saves or displays a picture showing ROIs before confirming the save/export
@@ -57,6 +68,8 @@ Get binary masks for all three required channels (fos, trap and colocalized)
 issues with running out of RAM so ran on server put without GPU so was slow. Wrote script to split images in two and then re-merge which can be used if not installed on server by the time needed
 
 ## STEP 5 (atlas alignment)
+
+Linnea has a protocol set up and working
 
 
 ## STEP 6 (nutil counts)
