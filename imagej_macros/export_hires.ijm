@@ -19,7 +19,10 @@ macro "Export hires [H]" {
 
 	path = File.openDialog("Please pick a .vsi file");
 
-	parent = File.getParent(path);
+	current = File.getParent(path);
+	parent = File.getParent(current) + File.separator + "hires";
+	File.makeDirectory(parent);
+	
 	vsiName = File.getName(path);
 	basename = replace(vsiName, ".vsi", "");
 	
@@ -27,7 +30,7 @@ macro "Export hires [H]" {
 	saveOptions = newArray("TIFF", "PNG", "JPG");
 	
 	Dialog.create("Choose options");
-	Dialog.addNumber("Series for lores", series_lores);
+	Dialog.addNumber("Series for ROIs", series_lores);
 	Dialog.addNumber("Series for hires", series_hires);
 	Dialog.addCheckbox("Channel 1", channel_1);
 	Dialog.addCheckbox("Channel 2", channel_2);
@@ -57,7 +60,7 @@ macro "Export hires [H]" {
 			workingChannel = c+1;
 			outDir = parent + File.separator + "chan" + workingChannel;
 			if (!File.exists(outDir)) {
-				File.makeDirectory(parent + File.separator + "chan" + workingChannel);
+				File.makeDirectory(outDir);
 			}
 		}
 	}
@@ -67,6 +70,10 @@ macro "Export hires [H]" {
 	
 	roiManager("List");
 	n = roiManager("count");
+	print(n);
+	
+	// if n = 0 then load ROIs authomatically...
+	// will need this for auto running, maybe make a batch script
 	
 	for (i = 0; i < n; i++) {
 		tStart = getTime();
@@ -98,6 +105,7 @@ macro "Export hires [H]" {
 				print("Analyzing", basename, "channel", workingChannel, "blaaaaah!");
 								
 				outDir = parent + File.separator + "chan" + workingChannel;
+				File.makeDirectory(outDir);
 				print("Saving to", outDir);
 				
 				input = "C" + workingChannel + "-" + windowName;
