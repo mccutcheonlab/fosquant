@@ -153,6 +153,7 @@ cython_debug/
 
 data/*
 config.json
+config_hires.json
 testscript.py
 
 *.code-workspace
