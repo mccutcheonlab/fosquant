@@ -50,3 +50,26 @@ def setup_logger(projectdir):
     logger.info("Created log file at {}".format(logfile))
 
     return logger
+
+def check_existing_files(path_to_check, overwrite):
+    """Checks if any files exist in given folder. If there are files, checks whether they can be overwritten.
+
+    Args:
+        path_to_check (Str): Folder to check for files
+        overwrite (Bool): Option to overwrite files or not
+
+    Returns:
+        Bool: True if there are no files or if user specifies that they can be overwritten
+    """
+    if len(os.listdir(path_to_check)) > 0:
+        if overwrite == False:
+            logger.info("Files found in {}. If you want to re-download or re-analyze then run the command again with the -o option.".format(path_to_check))
+            return False
+        else:
+            i = input("Overwrite option is selected. Do you want to try downloading the raw data again? (y/N)")
+            if i != "y":
+                return False
+            else:
+                return True
+    else:
+        return True
