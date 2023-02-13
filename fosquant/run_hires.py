@@ -61,7 +61,7 @@ print(args_dict)
 if not (args_dict["save_jpg"]) and (args_dict["save_png"]) and (args_dict["save_tif"]):
     print("No saved files requested. Select one format to save. Exiting.")
 
-folder = config_data["path_to_data"]
+folder = config_data["path_to_project_dir"]
 
 if args_dict["animals"] == "all":
     aaa = [d for d in os.path.isdir(os.listdir(folder)) if "rawdata" in os.listdir(os.path.join(folder, d))]
