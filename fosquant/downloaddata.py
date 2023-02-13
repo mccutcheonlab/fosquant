@@ -44,6 +44,15 @@ def parse_args(argv, config_data):
     return args_dict
 
 def check_existing_files(path_to_check, overwrite):
+    """Checks if any files exist in given folder. If there are files, checks whether they can be overwritten.
+
+    Args:
+        path_to_check (Str): Folder to check for files
+        overwrite (Bool): Option to overwrite files or not
+
+    Returns:
+        Bool: True if there are no files or if user specifies that they can be overwritten
+    """
     if len(os.listdir(path_to_check)) > 0:
         if overwrite == False:
             logger.info("Files found in {}. If you want to re-download or re-analyze then run the command again with the -o option.".format(path_to_check))
@@ -57,41 +66,57 @@ def check_existing_files(path_to_check, overwrite):
     else:
         return True
 
+def setup_logger(projectdir):
+    """Sets up logging by creating a logger object and making a directory if needed.
+
+    Use by calling logger.info() or logger.debug()
+
+    Args:
+        projectdir (Str): Path to folder where log directory will be created.
+
+    Returns:
+        logger: Object allowing lines to be added to log. 
+    """
+    logdir = os.path.join(projectdir, "log")
+    
+    if not os.path.isdir(logdir):
+        os.mkdir(logdir)
+
+    ## setting up logger
+    logfile = os.path.join(logdir, "{}.log".format(datetime.now().strftime('%Y-%m-%d_%H:%M:%S')))
+
+    logger = logging.getLogger(logfile)
+    logger.setLevel(level=logging.DEBUG)
+
+    logStreamFormatter = logging.Formatter(
+    fmt=f"%(levelname)-8s %(asctime)s \t line %(lineno)s - %(message)s", 
+    datefmt="%H:%M:%S"
+    )
+    consoleHandler = logging.StreamHandler(stream=sys.stdout)
+    consoleHandler.setFormatter(logStreamFormatter)
+    consoleHandler.setLevel(level=logging.DEBUG)
+
+    logger.addHandler(consoleHandler)
+
+    logFileFormatter = logging.Formatter(
+        fmt=f"%(levelname)s %(asctime)s L%(lineno)s - %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
+    fileHandler = logging.FileHandler(filename=logfile)
+    fileHandler.setFormatter(logFileFormatter)
+    fileHandler.setLevel(level=logging.DEBUG)
+
+    logger.addHandler(fileHandler)
+
+    logger.info("Created log file at {}".format(logfile))
+
+    return logger
+
 f = open("../config.json")
 config_data = json.load(f)
 args_dict = parse_args(sys.argv, config_data)
 
-logdir = os.path.join(args_dict["project_dir"], "log")
-if not os.path.isdir(logdir):
-    os.mkdir(logdir)
-
-## setting up logger
-logfile = os.path.join(args_dict["project_dir"], "log", "{}.log".format(datetime.now().strftime('%Y-%m-%d_%H:%M:%S')))
-
-logger = logging.getLogger(logfile)
-logger.setLevel(level=logging.DEBUG)
-
-logStreamFormatter = logging.Formatter(
-  fmt=f"%(levelname)-8s %(asctime)s \t line %(lineno)s - %(message)s", 
-  datefmt="%H:%M:%S"
-)
-consoleHandler = logging.StreamHandler(stream=sys.stdout)
-consoleHandler.setFormatter(logStreamFormatter)
-consoleHandler.setLevel(level=logging.DEBUG)
-
-logger.addHandler(consoleHandler)
-
-logFileFormatter = logging.Formatter(
-    fmt=f"%(levelname)s %(asctime)s L%(lineno)s - %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S",
-)
-fileHandler = logging.FileHandler(filename=logfile)
-fileHandler.setFormatter(logFileFormatter)
-fileHandler.setLevel(level=logging.DEBUG)
-
-logger.addHandler(fileHandler)
-
-logger.info("Created log file at {}".format(logfile))
+logger = setup_logger(args_dict["project_dir"])
 
 if args_dict["metafile"]:
     logger.info("Downloading metafile from remote repo")
@@ -106,7 +131,6 @@ if not os.path.exists(csv_file):
     sys.exit(2)
 
 df = pd.read_csv(csv_file)
-# print(df.head())
 
 if args_dict["animals"] == "all":
     args_dict["animals"] = df["animal"].unique()
