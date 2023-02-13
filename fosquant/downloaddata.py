@@ -142,7 +142,7 @@ for animal in args_dict["animals"]:
             continue
 
         slide_files = [slide.item() for slide in [row["slide1A"], row["slide1B"], row["slide1C"]] if slide.item() != "none" ]
-        remote_folder = df["folder"].item()
+        remote_folder = row["folder"].item()
 
         logger.info("Downloading files... {}".format(slide_files))
         path_to_azcopy = config_data["path_to_azcopy"]
