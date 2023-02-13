@@ -63,7 +63,11 @@ def check_existing_files(path_to_check, overwrite):
     """
     if len(os.listdir(path_to_check)) > 0:
         if overwrite == False:
-            logger.info("Files found in {}. If you want to re-download or re-analyze then run the command again with the -o option.".format(path_to_check))
+            msg = "Files found in {}. If you want to re-download or re-analyze then run the command again with the -o option.".format(path_to_check)
+            try:
+                logger.info(msg)
+            except: # if logger not available
+                print(msg)
             return False
         else:
             i = input("Overwrite option is selected. Do you want to try downloading the raw data again? (y/N)")
