@@ -96,4 +96,4 @@ for animal in args_dict["animals"]:
         logger.info("Opening ImageJ to process {}".format(vsi))
         subprocess.call("{} -macro export_lowres_batch.ijm '{}, {}, {}, {}, {}, {}' -batch".format(config_data["path_to_imagej"], vsipath, rois, series, channel, rotate, invert ), shell=True)
  
- logger.info("Finished.")
+logger.info("Finished.")
