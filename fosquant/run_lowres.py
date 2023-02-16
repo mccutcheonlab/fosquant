@@ -51,9 +51,6 @@ f = open("../config_lowres.json")
 config_data = json.load(f)
 args_dict = parse_args(sys.argv, config_data)
 
-print(config_data)
-print(args_dict)
-
 folder = config_data["project_dir"]
 logger = setup_logger(args_dict["project_dir"])
 os.chdir(folder)
@@ -82,13 +79,12 @@ for animal in args_dict["animals"]:
     os.chdir(os.path.join(".", "rawdata"))
 
     vsi_files = [vsi for vsi in os.listdir(".") if vsi.endswith(".vsi")]
-    print(vsi_files)
+    logger.info("Found {} .vsi files".format(len(vsi_files)))
 
     for vsi in vsi_files:
         stub = vsi.split(".")[0]
         vsipath = os.path.join(os.getcwd(), vsi)
         rois = os.path.join(os.getcwd(), stub + "_ROIs.zip")
-        print(rois)
         channel = args_dict["channels"] 
         rotate = args_dict["rotate"] 
         series = args_dict["series"]
@@ -97,5 +93,7 @@ for animal in args_dict["animals"]:
         else:
             invert = "invertOff"
 
+        logger.info("Opening ImageJ to process {}".format(vsi))
         subprocess.call("{} -macro export_lowres_batch.ijm '{}, {}, {}, {}, {}, {}' -batch".format(config_data["path_to_imagej"], vsipath, rois, series, channel, rotate, invert ), shell=True)
  
+ logger.info("Finished.")
