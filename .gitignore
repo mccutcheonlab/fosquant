@@ -154,6 +154,7 @@ cython_debug/
 data/*
 config.json
 config_hires.json
+config_lowres.json
 testscript.py
 
 *.code-workspace
