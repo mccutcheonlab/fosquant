@@ -9,6 +9,8 @@ import json
 from helper_fx import *
 
 sys.path.append("~/Github/fosquant/")
+path_to_macro = os.path.join(os.getcwd(), "export_lowres_batch.ijm" )
+subprocess.call("cp {} ~/Fiji.app/macros/".format(path_to_macro), shell=True)
 
 # get and parse options
 def parse_args(argv, config_data):
@@ -16,11 +18,12 @@ def parse_args(argv, config_data):
     args_dict["animals"] = ""
     args_dict["project_dir"] = config_data["project_dir"]
     args_dict["channels"] = config_data["channels"]
+    args_dict["series"] = config_data["series_lowres"] 
     args_dict["rotate"] = config_data["rotate"]
     args_dict["invert"] = config_data["invert"] 
 
     try:
-        opts, args = getopt.getopt(argv[1:], "a:c:r:i")
+        opts, args = getopt.getopt(argv[1:], "a:c:s:r:i")
     except:
         print(arg_help)
         sys.exit(2)
@@ -33,6 +36,8 @@ def parse_args(argv, config_data):
             args_dict["animals"] = arg
         elif opt in ("-c", "--channels"):
             args_dict["channels"] = arg
+        elif opt in ("-s", "--series"):
+            args_dict["series"] = arg
         elif opt in ("-r", "--rotate"):
             args_dict["rotate"] = arg
         elif opt in ("-i", "--invert"):
@@ -80,8 +85,17 @@ for animal in args_dict["animals"]:
     print(vsi_files)
 
     for vsi in vsi_files:
-        print(vsi.split(".")[0])
-        # subprocess.call({} "")
+        stub = vsi.split(".")[0]
+        rois = stub + "_ROIs.zip"
+        channel = args_dict["channels"] 
+        rotate = args_dict["rotate"] 
+        series = args_dict["series"]
+        if args_dict["invert"]:
+            invert = "invertOn"
+        else:
+            invert = "invertOff"
+
+        subprocess.call("{} -macro export_lowres_batch.ijm '{}, {}, {}, {}, {}, {}' ".format(config_data["path_to_imagej"], vsi, rois, series, channel, rotate, invert ), shell=True)
     # if "rawdata" not in os.listdir("."):
     #     logger.info("No raw data folder for {}. Nothing to transfer.".format(animal))
     #     continue
