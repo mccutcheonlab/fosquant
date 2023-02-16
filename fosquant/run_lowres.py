@@ -86,7 +86,9 @@ for animal in args_dict["animals"]:
 
     for vsi in vsi_files:
         stub = vsi.split(".")[0]
-        rois = stub + "_ROIs.zip"
+        vsipath = os.path.join(os.getcwd(), vsi)
+        rois = os.path.join(os.getcwd(), stub + "_ROIs.zip")
+        print(rois)
         channel = args_dict["channels"] 
         rotate = args_dict["rotate"] 
         series = args_dict["series"]
@@ -95,15 +97,5 @@ for animal in args_dict["animals"]:
         else:
             invert = "invertOff"
 
-        subprocess.call("{} -macro export_lowres_batch.ijm '{}, {}, {}, {}, {}, {}' ".format(config_data["path_to_imagej"], vsi, rois, series, channel, rotate, invert ), shell=True)
-    # if "rawdata" not in os.listdir("."):
-    #     logger.info("No raw data folder for {}. Nothing to transfer.".format(animal))
-    #     continue
-    
-    
-#     path_to_azcopy = config_data["path_to_azcopy"]
-#     lowres_local = os.path.join(".", "lowres")
-#     lowres_remote = os.path.join(config_data["remote_lowres"], animal)
-
-#     logger.info("Transferring lowres files from VM to Azure for {}".format(animal))
-#     subprocess.call("{} cp {} {} --recursive=true".format(path_to_azcopy, lowres_local, lowres_remote), shell=True)
+        subprocess.call("{} -macro export_lowres_batch.ijm '{}, {}, {}, {}, {}, {}' -batch".format(config_data["path_to_imagej"], vsipath, rois, series, channel, rotate, invert ), shell=True)
+ 
