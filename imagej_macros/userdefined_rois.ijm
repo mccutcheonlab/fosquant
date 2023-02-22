@@ -1,42 +1,41 @@
-macro "User ROIs [U]" {
 
+macro "Add and rename ROI [a]" {
+
+	// get region
+	regionOptions = newArray("nacshell", "naccore", "piriform", "pvn");
+	Dialog.create("Choose region");
+	Dialog.addChoice("Region", regionOptions);
+	Dialog.show();
+	region = Dialog.getChoice();
+	
+	// get section number
 	imageFilename = getInfo("Image.title");
 	tempString = split(imageFilename, "(_s)");
 	sectionNumber = replace(tempString[1], ".jpg", "");
-
+	
+	// add and select ROI
+	roiManager("Add");
 	n = roiManager("count");
-	print(n);
-	if (n == 0) {
-		exit("No ROIs to process");
-	}
+	roiManager("Select", n-1);
 	
-	counter=1;
+	// rename ROI
+	roiName = "s" + sectionNumber + "_" + region;
+	roiManager("rename", roiName);
 	
-	for (i = 0; i < n; i++) {
-	    roiManager("select", i);
-	    name = Roi.getName;
-	    if (startsWith(name, "s")) {
-	    	continue;
-	    }
-	    else {
-	    	roiManager("rename", "s" + sectionNumber + "_n" + counter);
-	    	counter = counter + 1;
-	    	
-	    }
-	}	
+	// Add overlay
+	run("Add Selection...");
+	run("Overlay Options...", "stroke=red width=10 fill=none set apply");
 }
 
-macro "Save user-defined ROIs [D]" {
-		
-	region = getString("Add name for brain region", "");
+macro "Save all ROIs [S]" {
+	
+	imageFilename = getInfo("Image.title");
+	tempString = split(imageFilename, "_");
+	mouseID = tempString[0];
 	
 	path = getInfo("image.directory");
-	parent = File.getParent(path);
-
-	roipath = parent + File.separator + "userdefined_rois" + File.separator + region + "_ROIs.zip";
-
-	print(roipath); 
-	roiManager("save", roipath);
-	showMessage("ROIs saved successfully in " + roipath);
+	
+	roiPath = path + mouseID + "_userdefined_ROIs.zip";
+	print("Saved file as " + roiPath);
+	roiManager("save", roiPath);
 }
-
