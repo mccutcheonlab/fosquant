@@ -2,7 +2,7 @@
 macro "Add and rename ROI [a]" {
 
 	// get region
-	regionOptions = newArray("nacshell", "naccore", "piriform", "pvn");
+	regionOptions = newArray("nacshell", "naccore", "piriform", "caudate_put", "pv_thal", "pv_hypo", "arcuate", "parabrac", "raphe");
 	Dialog.create("Choose region");
 	Dialog.addChoice("Region", regionOptions);
 	Dialog.show();
