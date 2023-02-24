@@ -115,11 +115,9 @@ for animal in args_dict["animals"]:
         tif = args_dict["save_tif"]
 
         logger.info("Opening ImageJ to process {}".format(vsi))
-        subprocess.call("{} -macro export_hires_batch.ijm '{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}' \
+        subprocess.call("{} --ij2 -macro export_hires_batch.ijm '{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}' -batch \
                          ".format(args_dict["path_to_imagej"], vsipath, rois, series_rois, series_hires, c1, c2, c3, rotate, jpg, png, tif), shell=True)
  
-
-    #     #subprocess.call("{} -macro export_hires_batch.ijm '{}, {}, {}, {}, {}, {}' -batch".format(config_data["path_to_imagej"], vsipath, rois, series, channel, rotate, invert ), shell=True)
  
 logger.info("Finished.")
 

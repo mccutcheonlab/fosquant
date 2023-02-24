@@ -21,6 +21,7 @@ rotation = args[7];
 saveJPEG = (args[8] != 0);
 savePNG = (args[9] != 0);
 saveTIFF = (args[10] != 0);
+print(saveTIFF);
 
 setBatchMode(true);
 
@@ -104,27 +105,27 @@ for (i = 0; i < n; i++) {
 
             Ext.CLIJ2_clear();
     
-            selectWindow(output);
+            // selectWindow(output);
             
-            if (rotation == "upsidedown") {
-                run("Rotate 90 Degrees Left");
-                run("Rotate 90 Degrees Left");
-            }
-            else if (rotation == "anticlockwise") {
-                run("Rotate 90 Degrees Left");
-            }
-            else if (rotation == "clockwise") {
-                run("Rotate 90 Degrees Right");
-            }
+            // if (rotation == "upsidedown") {
+            //     run("Rotate 90 Degrees Left");
+            //     run("Rotate 90 Degrees Left");
+            // }
+            // else if (rotation == "anticlockwise") {
+            //     run("Rotate 90 Degrees Left");
+            // }
+            // else if (rotation == "clockwise") {
+            //     run("Rotate 90 Degrees Right");
+            // }
             
-            newName = basename + "_chan" + workingChannel + "_" + roiName;
+            // newName = basename + "_chan" + workingChannel + "_" + roiName;
             
-            if (saveJPEG == true) {
-                saveAs("jpg", outDir + File.separator + newName);
-            }
-            if (savePNG == true) {
-                saveAs("png", outDir + File.separator + newName);
-            }
+            // if (saveJPEG == true) {
+            //     saveAs("jpg", outDir + File.separator + newName);
+            // }
+            // if (savePNG == true) {
+            //     saveAs("png", outDir + File.separator + newName);
+            // }
             
             tEnd = getTime();
             tTaken = (tEnd - tStart) / 1000;
@@ -140,19 +141,3 @@ print("Finished running!");
 
 setBatchMode(false);
 
-// roiScaleFactor = 4;
-
-
-	// Dialog.create("Choose options");
-	// Dialog.addNumber("Series for ROIs", series_lores);
-	// Dialog.addNumber("Series for hires", series_hires);
-	// Dialog.addCheckbox("Channel 1", channel_1);
-	// Dialog.addCheckbox("Channel 2", channel_2);
-	// Dialog.addCheckbox("Channel 3", channel_3);
-	// Dialog.addChoice("Rotation", rotationItems);
-	
-	// Dialog.addMessage("File formats to save as");
-	// Dialog.addCheckbox("JPEG", saveJPEG);
-	// Dialog.addCheckbox("PNG", savePNG);
-	// Dialog.addCheckbox("TIFF", saveTIFF);
-	// Dialog.show();
