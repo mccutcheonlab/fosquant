@@ -6,6 +6,9 @@ import os
 import subprocess
 import json
 
+from subprocess import PIPE, run
+
+
 from time import perf_counter
 
 from helper_fx import *
@@ -83,7 +86,7 @@ for animal in args_dict["animals"]:
         rotate = args_dict["rotate"]
 
         logger.info("Opening ImageJ to process {}".format(vsi))
-        subprocess.call("{} -macro export_hires_batch.ijm '{}, {}, {}, {}, {} -headless' \
+        subprocess.call("{} -macro export_hires_batch.ijm '{}, {}, {}, {}, {}' -batch \
                          ".format(args_dict["path_to_imagej"], vsipath, rois, series_rois, series_hires, rotate), shell=True)
         toc = perf_counter()
         logger.info("Processed {} in {:0.4f} sec".format(vsi, toc-tic))

@@ -14,8 +14,6 @@ series_hires = parseInt(args[3]);
 
 rotation = args[4];
 
-print("Done.");
-
 setBatchMode(true);
 
 current = File.getParent(vsipath);
@@ -30,52 +28,53 @@ basename = replace(vsiName, ".vsi", "");
 scaleFactor = pow(2, (series_rois - series_hires));
 s = series_hires;
 
-print(scaleFactor);
+print("Using series", s, "with scale factor", scaleFactor);
 
 roiManager("open", roispath);
 n = roiManager("count");
-print(n);
+print("There are", n, "ROIs to analyze");
 roiManager("List");
 
-// for (i = 0; i < n; i++) {
-//     tStart = getTime();
-//     roiName = getResultString("Name", i);
-//     xPos = getResult("X", i) * scaleFactor;
-//     yPos = getResult("Y", i) * scaleFactor;
-//     width = getResult("Width", i) * scaleFactor;
-//     height = getResult("Height", i) * scaleFactor;
-//     print("Dimensions are: ", width, "x", height);
+for (i = 0; i < n; i++) {
+    tStart = getTime();
+    roiName = getResultString("Name", i);
+    xPos = getResult("X", i) * scaleFactor;
+    yPos = getResult("Y", i) * scaleFactor;
+    width = getResult("Width", i) * scaleFactor;
+    height = getResult("Height", i) * scaleFactor;
+    print("Dimensions are: ", width, "x", height);
     
-//     open_string = " series_" + s + " x_coordinate_" + s + "=" + xPos + " y_coordinate_" + s + "=" + yPos + " width_" + s + "=" + width + " height_" + s + "=" + height;
+    open_string = " series_" + s + " x_coordinate_" + s + "=" + xPos + " y_coordinate_" + s + "=" + yPos + " width_" + s + "=" + width + " height_" + s + "=" + height;
     
-//     run("Bio-Formats", "open=" + vsipath + " autoscale color_mode=Default crop rois_import=[ROI manager] view=Hyperstack stack_order=XYCZT" + open_string);
+    run("Bio-Formats", "open=" + vsipath + " autoscale color_mode=Default crop rois_import=[ROI manager] view=Hyperstack stack_order=XYCZT" + open_string);
     
-//     if (rotation == "upsidedown") {
-//         run("Rotate 90 Degrees Left");
-//         run("Rotate 90 Degrees Left");
-//     }
-//     else if (rotation == "anticlockwise") {
-//         run("Rotate 90 Degrees Left");
-//     }
-//     else if (rotation == "clockwise") {
-//         run("Rotate 90 Degrees Right");
-//     }
+    if (rotation == "upsidedown") {
+        print("Rotating");
+        run("Rotate 90 Degrees Left");
+        run("Rotate 90 Degrees Left");
+    }
+    else if (rotation == "anticlockwise") {
+        run("Rotate 90 Degrees Left");
+    }
+    else if (rotation == "clockwise") {
+        run("Rotate 90 Degrees Right");
+    }
 
-//     tifDir = parent + File.separator + "raw_tifs";
-//     if (!File.exists(tifDir)) {
-//         File.makeDirectory(tifDir);
-//     }
-//     save(tifDir + File.separator + basename + "_" +roiName);
-//     close("*");
-//     tEnd = getTime();
-//     tTaken = (tEnd - tStart) / 1000;
-//     print("Time taken for", roiName, ":", tTaken);
-// }
+    tifDir = parent + File.separator + "raw_tifs";
+    if (!File.exists(tifDir)) {
+        File.makeDirectory(tifDir);
+    }
+    save(tifDir + File.separator + basename + "_" +roiName);
+    close("*");
+    tEnd = getTime();
+    tTaken = (tEnd - tStart) / 1000;
+    print("Time taken for", roiName, ":", tTaken, "sec");
+}
 close("Overlay Elements of CROPPED_ROI Manager");
 close("ROI Manager");
 
 print("Finished running!");
     
 setBatchMode(false);
-run("Quit");
+
 
