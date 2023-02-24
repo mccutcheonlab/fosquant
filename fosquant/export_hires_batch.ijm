@@ -22,7 +22,7 @@ saveJPEG = (args[8] != 0);
 savePNG = (args[9] != 0);
 saveTIFF = (args[10] != 0);
 
-// setBatchMode(true);
+setBatchMode(true);
 
 current = File.getParent(vsipath);
 parent = File.getParent(current) + File.separator + "hires";
@@ -62,82 +62,83 @@ for (i = 0; i < n; i++) {
     height = getResult("Height", i) * scaleFactor;
     print("Dimensions are: ", width, "x", height);
     
-//     open_string = " series_" + s + " x_coordinate_" + s + "=" + xPos + " y_coordinate_" + s + "=" + yPos + " width_" + s + "=" + width + " height_" + s + "=" + height;
-//     run("Bio-Formats", "open=[path] autoscale color_mode=Default crop rois_import=[ROI manager] view=Hyperstack stack_order=XYCZT" + open_string);
+    open_string = " series_" + s + " x_coordinate_" + s + "=" + xPos + " y_coordinate_" + s + "=" + yPos + " width_" + s + "=" + width + " height_" + s + "=" + height;
     
-//     if (saveTIFF == true) {
-//         tiffDir = parent + File.separator + "raw_tiffs";
-//         if (!File.exists(tiffDir)) {
-//             File.makeDirectory(tiffDir);
-//         }
-//         save(tiffDir + File.separator + basename + "_" +roiName);
-//     }
+    run("Bio-Formats", "open=" + vsipath + " autoscale color_mode=Default crop rois_import=[ROI manager] view=Hyperstack stack_order=XYCZT" + open_string);
     
-//     windowName = getTitle();
-//     run("Split Channels");
+    if (saveTIFF == true) {
+        tiffDir = parent + File.separator + "raw_tiffs";
+        if (!File.exists(tiffDir)) {
+            File.makeDirectory(tiffDir);
+        }
+        save(tiffDir + File.separator + basename + "_" +roiName);
+    }
     
-//     for (c=0; c<3; c++) {
-//         if (channelArray[c] == true) {
+    windowName = getTitle();
+    run("Split Channels");
+    
+    for (c=0; c<3; c++) {
+        if (channelArray[c] == true) {
             
-//             workingChannel = c + 1;
-//             print("Analyzing", basename, "channel", workingChannel, "blaaaaah!");
+            workingChannel = c + 1;
+            print("Analyzing", basename, "channel", workingChannel, "blaaaaah!");
                             
-//             outDir = parent + File.separator + "chan" + workingChannel;
-//             File.makeDirectory(outDir);
-//             print("Saving to", outDir);
+            outDir = parent + File.separator + "chan" + workingChannel;
+            File.makeDirectory(outDir);
+            print("Saving to", outDir);
             
-//             input = "C" + workingChannel + "-" + windowName;
+            input = "C" + workingChannel + "-" + windowName;
 
-//             run("CLIJ2 Macro Extensions", "cl_device=");
-//             Ext.CLIJ2_clear();
-//             Ext.CLIJ2_push(input);
+            run("CLIJ2 Macro Extensions", "cl_device=");
+            Ext.CLIJ2_clear();
+            Ext.CLIJ2_push(input);
 
-//             output = "ext" + workingChannel;
-//             radius_x = 2.0;
-//             radius_y = 2.0;
-//             sigma = 10.0;
+            output = "ext" + workingChannel;
+            radius_x = 2.0;
+            radius_y = 2.0;
+            sigma = 10.0;
             
-//             Ext.CLIJ2_extendedDepthOfFocusVarianceProjection(input, output, radius_x, radius_y, sigma);
+            Ext.CLIJ2_extendedDepthOfFocusVarianceProjection(input, output, radius_x, radius_y, sigma);
             
-//             Ext.CLIJ2_pull(output);
+            Ext.CLIJ2_pull(output);
 
-//             Ext.CLIJ2_clear();
+            Ext.CLIJ2_clear();
     
-//             selectWindow(output);
+            selectWindow(output);
             
-//             if (rotation == "180 Degrees") {
-//                 run("Rotate 90 Degrees Left");
-//                 run("Rotate 90 Degrees Left");
-//             }
-//             else if (rotation == "Rotate 90 Degrees Left") {
-//                 run("Rotate 90 Degrees Left");
-//             }
-//             else if (rotation == "Rotate 90 Degrees Right") {
-//                 run("Rotate 90 Degrees Right");
-//             }
+            if (rotation == "upsidedown") {
+                run("Rotate 90 Degrees Left");
+                run("Rotate 90 Degrees Left");
+            }
+            else if (rotation == "anticlockwise") {
+                run("Rotate 90 Degrees Left");
+            }
+            else if (rotation == "clockwise") {
+                run("Rotate 90 Degrees Right");
+            }
             
-//             newName = basename + "_chan" + workingChannel + "_" + roiName;
+            newName = basename + "_chan" + workingChannel + "_" + roiName;
             
-//             if (saveJPEG == true) {
-//                 saveAs("jpg", outDir + File.separator + newName);
-//             }
-//             if (savePNG == true) {
-//                 saveAs("png", outDir + File.separator + newName);
-//             }
+            if (saveJPEG == true) {
+                saveAs("jpg", outDir + File.separator + newName);
+            }
+            if (savePNG == true) {
+                saveAs("png", outDir + File.separator + newName);
+            }
             
-//             tEnd = getTime();
-//             tTaken = (tEnd - tStart) / 1000;
-//             print("Time taken", tTaken);
-//         }
-//     }
-// close("*");
+            tEnd = getTime();
+            tTaken = (tEnd - tStart) / 1000;
+            print("Time taken", tTaken);
+        }
+    }
+close("*");
 }
-// close("Overlay Elements of CROPPED_ROI Manager");
-// close("ROI Manager");
+close("Overlay Elements of CROPPED_ROI Manager");
+close("ROI Manager");
 
-// print("Finished running!");
+print("Finished running!");
 
-// setBatchMode(false);
+setBatchMode(false);
 
 // roiScaleFactor = 4;
 
