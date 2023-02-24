@@ -53,6 +53,9 @@ maybe do two channels separately - two different folders and then make grayscale
 
 think about using slightly lower res, one level now
 
+**plan is to do this in two steps - export multichannel, multi-Z tifs first (imageJ subprocess because of reading vsi files) and then do EDF with python script**
+ 
+
 ## STEP 3 (develop cellpose models using cropped images for speed) [optional]
 
 

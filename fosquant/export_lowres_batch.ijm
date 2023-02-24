@@ -20,6 +20,8 @@ else {
     invertImage = false;
 }
 
+setBatchMode(true);
+
 roiScaleFactor = 4;
 
 print(args[0]);
@@ -84,3 +86,4 @@ for (i = 0; i < n; i++) {
 selectImage(id);
 close();
 
+setBatchMode(false);

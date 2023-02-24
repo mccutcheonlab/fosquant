@@ -158,3 +158,5 @@ config_lowres.json
 testscript.py
 
 *.code-workspace
+
+*.tif
