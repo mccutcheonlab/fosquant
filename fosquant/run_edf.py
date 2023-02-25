@@ -10,12 +10,13 @@ from time import perf_counter
 
 import pyclesperanto_prototype as cle
 from skimage.io import imread, imsave
+from skimage.util import img_as_ubyte
 
 from helper_fx import *
 
 sys.path.append("~/Github/fosquant/")
 
-device = cle.select_device("Quadro")
+device = cle.select_device("Tesla")
 print("Used GPU: ", device)
 
 tic = perf_counter()
@@ -56,15 +57,14 @@ def parse_args(argv, config_data):
 
 def edf(tif, channel):    
 
-    # initialize GPU
-    image = image[:,:,:,channel]
+    image = tif[:,:,:,channel]
     print(image.shape)
 
     result_image = None
     test_image = cle.push(image)
     result_image = cle.extended_depth_of_focus_variance_projection(test_image, result_image, radius_x=2, radius_y=2, sigma=10)
 
-    return result_image
+    return cle.pull(result_image)
 
 f = open("../config_hires.json")
 config_data = json.load(f)
@@ -125,19 +125,27 @@ for animal in args_dict["animals"]:
                     print("exiting")
 
             logger.info("Using extended depth of focus to process {} for channel {}".format(tif_file, chan))
+            result = edf(tif, int(chan))
 
-            # result_image = edf(os.path.join(".", tif), int(chan))
+            np.save(os.path.join(chan_path, stub+".npy"), result)
+
+            result *= 255.0/result.max() 
+
+            # result_image = np.interp(result_image, (result_image.min(), result_image.max()), (0, 255))
+
+            print(type(result))
+
             if args_dict["save_jpg"]:
-                imsave(os.path.join(chan_path, stub+".jpg"))
+                imsave(os.path.join(chan_path, stub+".jpg"), result)
                 print("Saving jpg")
             
             if args_dict["save_png"]:
-                imsave(os.path.join(chan_path, stub+".png"))
-                print("Saving jpg")
+                imsave(os.path.join(chan_path, stub+".png"), result)
+                print("Saving png")
 
             if args_dict["save_tif"]:
-                imsave(os.path.join(chan_path, stub+".tif"))
-                print("Saving jpg")
+                imsave(os.path.join(chan_path, stub+".tif"), result)
+                print("Saving tif")
 
 toc = perf_counter()
 
