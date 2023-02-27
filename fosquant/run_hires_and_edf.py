@@ -151,6 +151,9 @@ for animal in args_dict["animals"]:
             imsave(os.path.join(chan_path, stub+".png"), result)
             logger.info("Saving 16-bit .png to {}".format(chan_path))
 
+    if args_dict["delete_intermediates"]:
+        subprocess.call("rmdir ~/temp -r")
+
 logger.info("Finished.")
 
 
