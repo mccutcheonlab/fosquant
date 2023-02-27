@@ -29,7 +29,19 @@ macro "Export hires [H]" {
 	rotationItems = newArray("None", "Rotate 90 Degrees Left", "Rotate 90 Degrees Right", "180 Degrees");
 	saveOptions = newArray("TIFF", "PNG", "JPG");
 	
+	Dialog.create("Choose options");	
+	Dialog.addNumber("Series for ROIs", series_lores);	
+	Dialog.addNumber("Series for hires", series_hires);	
+	Dialog.addCheckbox("Channel 1", channel_1);	
+	Dialog.addCheckbox("Channel 2", channel_2);	
+	Dialog.addCheckbox("Channel 3", channel_3);	
+	Dialog.addChoice("Rotation", rotationItems);	
 
+	Dialog.addMessage("File formats to save as");	
+	Dialog.addCheckbox("JPEG", saveJPEG);	
+	Dialog.addCheckbox("PNG", savePNG);	
+	Dialog.addCheckbox("TIFF", saveTIFF);	
+	Dialog.show();
 	
 	series_lores = Dialog.getNumber();
 	series_hires = Dialog.getNumber();
