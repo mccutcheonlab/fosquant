@@ -28,7 +28,7 @@ def parse_args(argv, config_data):
     args_dict["delete_intermediates"] = False
 
     try:
-        opts, args = getopt.getopt(argv[1:], "a:r:ox")
+        opts, args = getopt.getopt(argv[1:], "a:c:r:ox")
     except:
         print(arg_help)
         sys.exit(2)
@@ -102,8 +102,10 @@ for animal in args_dict["animals"]:
     logger.info("Found {} .vsi files".format(len(vsi_files)))
 
     if len(vsi_files) > 0:
-        subprocess.call("cp . ~/temp/rawdata -r", shell=True)
-        os.chdir("~/temp/rawdata")
+        temp_folder = "/data_temp/{}/rawdata".format(animal)
+        os.makedirs(temp_folder)
+        subprocess.call("cp . {} -r".format(temp_folder), shell=True)
+        os.chdir(temp_folder)
     else:
         print("No .vsi files. Exiting.")
         sys.exit(2)
@@ -151,8 +153,14 @@ for animal in args_dict["animals"]:
             imsave(os.path.join(chan_path, stub+".png"), result)
             logger.info("Saving 16-bit .png to {}".format(chan_path))
 
-    if args_dict["delete_intermediates"]:
-        subprocess.call("rmdir ~/temp -r")
+        target_dir = os.path.join(folder, animal, "hires")
+        os.mkdir(target_dir)
+        for chan in channel_strings:
+            chan_path = os.path.join("..", "chan{}".format(chan))
+            subprocess.call("cp {} {} -r".format(chan_path, os.path.join(target_dir, "chan{}".format(chan))))
+
+        if args_dict["delete_intermediates"]:
+            subprocess.call("rmdir /data_temp/{} -r".format(animal))
 
 logger.info("Finished.")
 

@@ -64,7 +64,7 @@ for (i = 0; i < n; i++) {
     if (!File.exists(tifDir)) {
         File.makeDirectory(tifDir);
     }
-    save(tifDir + File.separator + basename + "_" +roiName);
+    save(tifDir + File.separator + basename +roiName);
     close("*");
     tEnd = getTime();
     tTaken = (tEnd - tStart) / 1000;
