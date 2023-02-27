@@ -3,27 +3,33 @@
 import sys
 import getopt
 import os
-import subprocess
 import json
 import numpy as np
 
+from time import perf_counter
+
 import pyclesperanto_prototype as cle
 from skimage.io import imread, imsave
+from skimage.util import img_as_ubyte
 
 from helper_fx import *
 
 sys.path.append("~/Github/fosquant/")
-path_to_macro = os.path.join(os.getcwd(), "export_hires_batch.ijm" )
-subprocess.call("cp {} ~/Fiji.app/macros/".format(path_to_macro), shell=True)
+
+device = cle.select_device("Tesla")
+print("Used GPU: ", device)
+
+tic = perf_counter()
 
 # get and parse options
 def parse_args(argv, config_data):
     args_dict = config_data
     args_dict["animals"] = ""
     args_dict["channels"] = ""
+    args_dict["overwrite"] = False
 
     try:
-        opts, args = getopt.getopt(argv[1:], "a:c:r:jpt")
+        opts, args = getopt.getopt(argv[1:], "a:c:ojpt")
     except:
         print(arg_help)
         sys.exit(2)
@@ -36,6 +42,8 @@ def parse_args(argv, config_data):
             args_dict["animals"] = arg
         elif opt in ("-c", "--channels"):
             args_dict["channels"] = arg
+        elif opt in ("-o", "--overwrite"):
+            args_dict["overwrite"] = True 
         elif opt in ("-j", "--save_jpg"):
             args_dict["save_jpg"] = True
         elif opt in ("-p", "--save_png"):
@@ -47,25 +55,16 @@ def parse_args(argv, config_data):
     
     return args_dict
 
-def edf(image, channel, path):    
+def edf(tif, channel):    
 
-    # initialize GPU
-    device = cle.select_device("Quadro")
-    print("Used GPU: ", device)
-
-    image = np.asarray(imread("..//data//channel3.tif"))
-
-    image = image[:,:,:,channel]
+    image = tif[:,:,:,channel]
     print(image.shape)
 
     result_image = None
     test_image = cle.push(image)
     result_image = cle.extended_depth_of_focus_variance_projection(test_image, result_image, radius_x=2, radius_y=2, sigma=10)
 
-    # cle.imshow(result_image)
-    # imsave(path, result_image)
-
-    return result_image
+    return cle.pull(result_image)
 
 f = open("../config_hires.json")
 config_data = json.load(f)
@@ -109,47 +108,48 @@ for animal in args_dict["animals"]:
     tifs = [tif for tif in os.listdir(".") if tif.endswith(".tif")]
     logger.info("Found {} .tif files".format(len(tifs)))
 
-    for tif in tifs:
-        print(tif)
-        stub = tif.split(".")[0]
+    for tif_file in tifs:
+        print(tif_file)
+        stub = tif_file.split(".")[0]
 
+        tif = np.asarray(imread(tif_file))
 
-
-        
         channel_strings = args_dict["channels"].split()
         for chan in channel_strings:
-            print(chan)
-            # make folder if needed
-            # check overwrite
 
-            logger.info("Using extended depth of focus to process {} for channel {}".format(tif, chan))
+            chan_path = os.path.join("..", "chan{}".format(chan))
+            if not os.path.isdir(chan_path):
+                os.mkdir(chan_path)
+            else:
+                if not check_existing_files(chan_path, args_dict["overwrite"]):
+                    print("exiting")
 
-            result_image = edf(os.path.join(".", tif), int(chan))
+            logger.info("Using extended depth of focus to process {} for channel {}".format(tif_file, chan))
+            result = edf(tif, int(chan))
 
-            # save as necessary
-                
+            np.save(os.path.join(chan_path, stub+".npy"), result)
+
+            result *= 255.0/result.max() 
+
+            # result_image = np.interp(result_image, (result_image.min(), result_image.max()), (0, 255))
+
+            print(type(result))
+
+            if args_dict["save_jpg"]:
+                imsave(os.path.join(chan_path, stub+".jpg"), result)
+                print("Saving jpg")
             
+            if args_dict["save_png"]:
+                imsave(os.path.join(chan_path, stub+".png"), result)
+                print("Saving png")
 
+            if args_dict["save_tif"]:
+                imsave(os.path.join(chan_path, stub+".tif"), result)
+                print("Saving tif")
 
-        # if "1" in channel_strings:
-        #     args_dict["chan1"] = True
-        # if "2" in channel_strings:
-        #     args_dict["chan2"] = True
-        # if "3" in channel_strings:
-        #     args_dict["chan3"] = True
+toc = perf_counter()
 
-
-        # c1 = int(args_dict["chan1"])
-        # c2 = int(args_dict["chan2"])
-        # c3 = int(args_dict["chan3"])
-
-        # jpg = args_dict["save_jpg"]
-        # png = args_dict["save_png"]
-        # tif = args_dict["save_tif"]
-
-        # logger.info("Opening ImageJ to process {}".format(vsi))
-
-logger.info("Finished.")
+logger.info("Finished in {:.4f} sec.".format(toc-tic))
 
 
 

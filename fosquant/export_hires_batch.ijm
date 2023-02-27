@@ -12,26 +12,28 @@ roispath = args[1];
 series_rois = parseInt(args[2]);
 series_hires = parseInt(args[3]);
 
-rotation = args[7];
+rotation = args[4];
 
-// setBatchMode(true);
+setBatchMode(true);
 
-// current = File.getParent(vsipath);
-// parent = File.getParent(current) + File.separator + "hires";
-// File.makeDirectory(parent);
+current = File.getParent(vsipath);
+parent = File.getParent(current) + File.separator + "hires";
+if (!File.exists(parent)) {
+    File.makeDirectory(parent);
+}
 
-// vsiName = File.getName(vsipath);
-// basename = replace(vsiName, ".vsi", "");
+vsiName = File.getName(vsipath);
+basename = replace(vsiName, ".vsi", "");
 
-// scaleFactor = pow(2, (series_rois - series_hires));
-// s = series_hires;
+scaleFactor = pow(2, (series_rois - series_hires));
+s = series_hires;
 
-// print(scaleFactor);
+print("Using series", s, "with scale factor", scaleFactor);
 
-// roiManager("open", roispath);
-// n = roiManager("count");
-// print(n);
-// roiManager("List");
+roiManager("open", roispath);
+n = roiManager("count");
+print("There are", n, "ROIs to analyze");
+roiManager("List");
 
 for (i = 0; i < n; i++) {
     tStart = getTime();
@@ -47,6 +49,7 @@ for (i = 0; i < n; i++) {
     run("Bio-Formats", "open=" + vsipath + " autoscale color_mode=Default crop rois_import=[ROI manager] view=Hyperstack stack_order=XYCZT" + open_string);
     
     if (rotation == "upsidedown") {
+        print("Rotating");
         run("Rotate 90 Degrees Left");
         run("Rotate 90 Degrees Left");
     }
@@ -57,68 +60,21 @@ for (i = 0; i < n; i++) {
         run("Rotate 90 Degrees Right");
     }
 
-    tiffDir = parent + File.separator + "raw_tifs";
-    if (!File.exists(tiffDir)) {
-        File.makeDirectory(tiffDir);
+    tifDir = parent + File.separator + "raw_tifs";
+    if (!File.exists(tifDir)) {
+        File.makeDirectory(tifDir);
     }
-    save(tiffDir + File.separator + basename + "_" +roiName);
+    save(tifDir + File.separator + basename + "_" +roiName);
     close("*");
+    tEnd = getTime();
+    tTaken = (tEnd - tStart) / 1000;
+    print("Time taken for", roiName, ":", tTaken, "sec");
 }
 close("Overlay Elements of CROPPED_ROI Manager");
 close("ROI Manager");
 
 print("Finished running!");
     
-// //     windowName = getTitle();
-// //     run("Split Channels");
-    
-// //     for (c=0; c<3; c++) {
-// //         if (channelArray[c] == true) {
-            
-// //             workingChannel = c + 1;
-// //             print("Analyzing", basename, "channel", workingChannel, "blaaaaah!");
-                            
-// //             outDir = parent + File.separator + "chan" + workingChannel;
-// //             File.makeDirectory(outDir);
-// //             print("Saving to", outDir);
-            
-// //             input = "C" + workingChannel + "-" + windowName;
-
-// //             run("CLIJ2 Macro Extensions", "cl_device=");
-// //             Ext.CLIJ2_clear();
-// //             Ext.CLIJ2_push(input);
-
-// //             output = "ext" + workingChannel;
-// //             radius_x = 2.0;
-// //             radius_y = 2.0;
-// //             sigma = 10.0;
-            
-// //             Ext.CLIJ2_extendedDepthOfFocusVarianceProjection(input, output, radius_x, radius_y, sigma);
-            
-// //             Ext.CLIJ2_pull(output);
-
-// //             Ext.CLIJ2_clear();
-    
-// //             selectWindow(output);
-            
-// //             if (rotation == "upsidedown") {
-// //                 run("Rotate 90 Degrees Left");
-// //                 run("Rotate 90 Degrees Left");
-// //             }
-// //             else if (rotation == "anticlockwise") {
-// //                 run("Rotate 90 Degrees Left");
-// //             }
-// //             else if (rotation == "clockwise") {
-// //                 run("Rotate 90 Degrees Right");
-// //             }
-            
-// //             newName = basename + "_chan" + workingChannel + "_" + roiName;
-                        
-// //             tEnd = getTime();
-// //             tTaken = (tEnd - tStart) / 1000;
-// //             print("Time taken", tTaken);
-// //         }
-// //     }
+setBatchMode(false);
 
 
-// // setBatchMode(false);

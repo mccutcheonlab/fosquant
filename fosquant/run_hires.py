@@ -6,6 +6,8 @@ import os
 import subprocess
 import json
 
+from time import perf_counter
+
 from helper_fx import *
 
 sys.path.append("~/Github/fosquant/")
@@ -72,6 +74,7 @@ for animal in args_dict["animals"]:
 
     for vsi in vsi_files:
         print(vsi)
+        tic = perf_counter()
         stub = vsi.split(".")[0]
         vsipath = os.path.join(os.getcwd(), vsi)
         rois = os.path.join(os.getcwd(), stub + "_ROIs.zip")
@@ -80,8 +83,10 @@ for animal in args_dict["animals"]:
         rotate = args_dict["rotate"]
 
         logger.info("Opening ImageJ to process {}".format(vsi))
-        subprocess.call("{} -macro export_hires_batch.ijm '{}, {}, {}, {}, {} -batch' \
+        subprocess.call("{} -macro export_hires_batch.ijm '{}, {}, {}, {}, {}' -batch \
                          ".format(args_dict["path_to_imagej"], vsipath, rois, series_rois, series_hires, rotate), shell=True)
+        toc = perf_counter()
+        logger.info("Processed {} in {:0.4f} sec".format(vsi, toc-tic))
 
 logger.info("Finished.")
 
