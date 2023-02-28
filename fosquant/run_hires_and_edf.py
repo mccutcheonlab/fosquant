@@ -103,8 +103,9 @@ for animal in args_dict["animals"]:
 
     if len(vsi_files) > 0:
         temp_folder = "/data_temp/{}/rawdata".format(animal)
-        os.makedirs(temp_folder)
-        subprocess.call("cp . {} -r".format(temp_folder), shell=True)
+        if not os.path.exists(temp_folder):
+            os.makedirs(temp_folder)
+            subprocess.call("cp . {} -r".format(temp_folder), shell=True)
         os.chdir(temp_folder)
     else:
         print("No .vsi files. Exiting.")
@@ -143,24 +144,27 @@ for animal in args_dict["animals"]:
             chan_path = os.path.join("..", "chan{}".format(chan))
             if not os.path.isdir(chan_path):
                 os.mkdir(chan_path)
-            else:
-                if not check_existing_files(chan_path, args_dict["overwrite"]):
-                    print("exiting")
+            # else:
+            #     if not check_existing_files(chan_path, args_dict["overwrite"]):
+            #         print("exiting")
 
             logger.info("Using extended depth of focus to process {} for channel {}".format(tif_file, chan))
             result = edf(tif, int(chan))
 
-            imsave(os.path.join(chan_path, stub+".png"), result)
+            imsave(os.path.join(chan_path, stub + ".png"), result)
             logger.info("Saving 16-bit .png to {}".format(chan_path))
 
-        target_dir = os.path.join(folder, animal, "hires")
-        os.mkdir(target_dir)
-        for chan in channel_strings:
-            chan_path = os.path.join("..", "chan{}".format(chan))
-            subprocess.call("cp {} {} -r".format(chan_path, os.path.join(target_dir, "chan{}".format(chan))))
+    target_dir = os.path.join(folder, animal, "hires")
+    if not os.path.exists(target_dir):
+        os.makedirs(target_dir)
+        
+    for chan in channel_strings:
+        chan_path = os.path.join("..", "chan{}".format(chan))
+        subprocess.call("cp -r {} {}".format(os.path.abspath(chan_path), target_dir), shell=True)
 
-        if args_dict["delete_intermediates"]:
-            subprocess.call("rmdir /data_temp/{} -r".format(animal))
+    if args_dict["delete_intermediates"]:
+        subprocess.call("rm /data_temp/{} -r".format(animal), shell=True)
+        subprocess.call("trash-empty", shell=True)
 
 logger.info("Finished.")
 
