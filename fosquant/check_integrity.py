@@ -56,8 +56,8 @@ def check_lowres(project_dir, logger, rois=None):
     logger.info("Found {} .jpg files".format(len(jpg_files)))
 
     if rois != None:
-        section_names = [s.split(".")[0].split("_")[-1] for s in jpg_files] 
-        if rois.sort() == section_names.sort():
+        section_names = [s.split(".")[0].split("_")[-1] for s in jpg_files]
+        if rois == section_names:
             logger.info("ROIs from ROI file match lowres sections")
         else:
             logger.warning("ROIs from ROI file DO NOT MATCH lowres sections")
@@ -86,7 +86,9 @@ def check_hires(project_dir, logger, rois=None):
             logger.info("Found {} .png files".format(len(png_files)))
             section_names = [s.split(".")[0].split("_")[-1] for s in png_files]
             if rois != None:
-                if rois.sort() == section_names.sort():
+                print(rois)
+                print(section_names)
+                if rois == section_names:
                     logger.info("ROIs from ROI file match hires sections in {}".format(chan_dir))
                 else:
                     logger.warning("ROIs from ROI file DO NOT MATCH hires sections in {}".format(chan_dir))
