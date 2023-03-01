@@ -135,6 +135,7 @@ for animal in args_dict["animals"]:
     for tif_file in tifs:
         print(tif_file)
         stub = tif_file.split(".")[0]
+        
 
         tif = np.asarray(imread(tif_file))
 
@@ -147,6 +148,11 @@ for animal in args_dict["animals"]:
             # else:
             #     if not check_existing_files(chan_path, args_dict["overwrite"]):
             #         print("exiting")
+
+            if os.path.exists(os.path.join(chan_path, stub + ".png")):
+                if args_dict["overwrite"] == False:
+                    logger.info("PNG file already exists for {}, channel {}".format(stub, chan))
+                    continue
 
             logger.info("Using extended depth of focus to process {} for channel {}".format(tif_file, chan))
             result = edf(tif, int(chan))
