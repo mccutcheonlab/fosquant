@@ -160,3 +160,4 @@ testscript.py
 *.code-workspace
 
 *.tif
+*.png
