@@ -4,7 +4,6 @@ import logging
 
 from datetime import datetime
 
-
 def setup_logger(projectdir):
     """Sets up logging by creating a logger object and making a directory if needed.
 
