@@ -4,6 +4,8 @@ import logging
 
 from datetime import datetime
 
+from read_roi import read_roi_zip
+
 def setup_logger(projectdir):
     """Sets up logging by creating a logger object and making a directory if needed.
 
@@ -76,3 +78,16 @@ def check_existing_files(path_to_check, overwrite):
                 return True
     else:
         return True
+    
+def get_scaled_roi(roipath, series_hires=8, series_lowres=12):
+
+    roidata = read_roi_zip(roipath)
+    scale_factor = (series_hires - series_lowres)**2
+
+    rois = {}
+    for item in roidata:
+    s = roidata[item]
+    x, y, w, h = s["left"], s["top"], s["width"], s["height"]
+    rois[item] = tuple([dim*scale_factor for dim in (x,y,w,h)])
+
+    return rois

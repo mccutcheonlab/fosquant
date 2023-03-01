@@ -11,13 +11,14 @@ from time import perf_counter
 
 import pyclesperanto_prototype as cle
 from skimage.io import imread, imsave
-from skimage.util import img_as_ubyte
+from skimage.util import img_as_uint
 
+from get_section import *
 from helper_fx import *
 
 sys.path.append("~/Github/fosquant/")
-path_to_macro = os.path.join(os.getcwd(), "export_hires_batch.ijm" )
-subprocess.call("cp {} ~/Fiji.app/macros/".format(path_to_macro), shell=True)
+# path_to_macro = os.path.join(os.getcwd(), "export_hires_batch.ijm" )
+# subprocess.call("cp {} ~/Fiji.app/macros/".format(path_to_macro), shell=True)
 
 # get and parse options
 def parse_args(argv, config_data):
@@ -52,16 +53,13 @@ def parse_args(argv, config_data):
     
     return args_dict
 
-def edf(tif, channel):    
-
-    image = tif[:,:,:,channel]
-    print(image.shape)
+def edf(image):
 
     result_image = None
     test_image = cle.push(image)
     result_image = cle.extended_depth_of_focus_variance_projection(test_image, result_image, radius_x=2, radius_y=2, sigma=10)
 
-    return cle.pull(result_image).astype("uint16")
+    return img_as_uint( cle.pull(result_image) )
 
 f = open("../config_hires.json")
 config_data = json.load(f)
@@ -98,6 +96,15 @@ for animal in args_dict["animals"]:
 
     os.chdir(os.path.join(".", "rawdata"))
 
+    channel_strings = args_dict["channels"].split()
+    for chan in channel_strings:
+        chan_path = os.path.join("..", "chan{}".format(chan))
+        if not os.path.isdir(chan_path):
+            os.mkdir(chan_path)
+        # else:
+        #     if not check_existing_files(chan_path, args_dict["overwrite"]):
+        #         print("exiting")
+
     vsi_files = [vsi for vsi in os.listdir(".") if vsi.endswith(".vsi")]
     logger.info("Found {} .vsi files".format(len(vsi_files)))
 
@@ -116,49 +123,33 @@ for animal in args_dict["animals"]:
         tic = perf_counter()
         stub = vsi.split(".")[0]
         vsipath = os.path.join(os.getcwd(), vsi)
-        rois = os.path.join(os.getcwd(), stub + "_ROIs.zip")
+        roipath = os.path.join(os.getcwd(), stub + "_ROIs.zip")
         series_rois = args_dict["series_rois"]
         series_hires = args_dict["series_hires"]
         rotate = args_dict["rotate"]
 
-        logger.info("Opening ImageJ to process {}".format(vsi))
-        subprocess.call("{} -macro export_hires_batch.ijm '{}, {}, {}, {}, {}' -batch \
-                         ".format(args_dict["path_to_imagej"], vsipath, rois, series_rois, series_hires, rotate), shell=True)
+        logger.info("Using python-bioformats to process {}".format(vsi))
+
+        rois = get_scaled_roi(roipath)
+        print(rois)
+
+        for roi in rois:
+            for chan in channel_strings:
+                chan_path = os.path.join("..", "chan{}".format(chan))
+                if os.path.exists(os.path.join(chan_path, stub + ".png")):
+                    if args_dict["overwrite"] == False:
+                        logger.info("PNG file already exists for {}, channel {}".format(stub, chan))
+                        continue
+
+                im = get_section_from_vsi(vsipath, roi.item(), chan)
+                logger.info("Using extended depth of focus to process {} for channel {}".format(tif_file, chan))
+                result = edf(im, int(chan))
+
+                imsave(os.path.join(chan_path, stub + ".png"), result)
+                logger.info("Saving 16-bit .png to {}".format(chan_path))
+
         toc = perf_counter()
         logger.info("Processed {} in {:0.4f} sec".format(vsi, toc-tic))
-
-    os.chdir(os.path.join("..", "hires", "raw_tifs"))
-
-    tifs = [tif for tif in os.listdir(".") if tif.endswith(".tif")]
-    logger.info("Found {} .tif files".format(len(tifs)))
-
-    for tif_file in tifs:
-        print(tif_file)
-        stub = tif_file.split(".")[0]
-        
-
-        tif = np.asarray(imread(tif_file))
-
-        channel_strings = args_dict["channels"].split()
-        for chan in channel_strings:
-
-            chan_path = os.path.join("..", "chan{}".format(chan))
-            if not os.path.isdir(chan_path):
-                os.mkdir(chan_path)
-            # else:
-            #     if not check_existing_files(chan_path, args_dict["overwrite"]):
-            #         print("exiting")
-
-            if os.path.exists(os.path.join(chan_path, stub + ".png")):
-                if args_dict["overwrite"] == False:
-                    logger.info("PNG file already exists for {}, channel {}".format(stub, chan))
-                    continue
-
-            logger.info("Using extended depth of focus to process {} for channel {}".format(tif_file, chan))
-            result = edf(tif, int(chan))
-
-            imsave(os.path.join(chan_path, stub + ".png"), result)
-            logger.info("Saving 16-bit .png to {}".format(chan_path))
 
     target_dir = os.path.join(folder, animal, "hires")
     if not os.path.exists(target_dir):
