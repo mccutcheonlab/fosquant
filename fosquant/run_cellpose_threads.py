@@ -88,13 +88,18 @@ for animal in args_dict["animals"]:
             print("failed")
             continue
         
-        chan_path = os.path.join(folder, animal, "chan{}".format(chan))
+        chan_path = os.path.join(folder, animal, "hires", "chan{}".format(chan))
         model = os.path.join(folder, "models", args_dict["model_chan{}".format(chan)])
         diameter = args_dict["diameter_chan{}".format(chan)]
 
+        mask_files = [f for f in os.listdir(chan_path) if "cp_masks" in f]
+        if len(mask_files) > 0:
+            logger.info("Mask files detected in output folder. Exiting.")
+            continue
+
         cellpose_template_string = "python -m cellpose --dir {} --pretrained_model {} --chan 1 --chan2 0 --diameter {} --verbose --use_gpu --save_png --fast_mode --no_npy"
-        subprocess.call(cellpose_template_string.format(chan_path, model, diameter), shell=True)
-        cellpose_template_string.format(chan_path, model, diameter)
+        # subprocess.call(cellpose_template_string.format(chan_path, model, diameter), shell=True)
+        print(cellpose_template_string.format(chan_path, model, diameter))
 
         # p = []
         # p.append("cellpose ")
