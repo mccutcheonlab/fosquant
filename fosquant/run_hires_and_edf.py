@@ -13,12 +13,20 @@ import pyclesperanto_prototype as cle
 from skimage.io import imread, imsave
 from skimage.util import img_as_uint
 
-from get_section import *
 from helper_fx import *
 
+import javabridge
+import bioformats as bf
+
+
+javabridge.start_vm(class_path=bf.JARS)
+
+# myloglevel="ERROR"
+# rootLoggerName = javabridge.get_static_field("org/slf4j/Logger","ROOT_LOGGER_NAME", "Ljava/lang/String;")
+# rootLogger = javabridge.static_call("org/slf4j/LoggerFactory","getLogger", "(Ljava/lang/String;)Lorg/slf4j/Logger;", rootLoggerName)
+# logLevel = javabridge.get_static_field("ch/qos/logback/classic/Level",myloglevel, "Lch/qos/logback/classic/Level;")
+
 sys.path.append("~/Github/fosquant/")
-# path_to_macro = os.path.join(os.getcwd(), "export_hires_batch.ijm" )
-# subprocess.call("cp {} ~/Fiji.app/macros/".format(path_to_macro), shell=True)
 
 # get and parse options
 def parse_args(argv, config_data):
@@ -53,13 +61,80 @@ def parse_args(argv, config_data):
     
     return args_dict
 
+def _init_logger():
+    """This is so that Javabridge doesn't spill out a lot of DEBUG messages
+    during runtime.
+    From CellProfiler/python-bioformats.
+    """
+    rootLoggerName = javabridge.get_static_field("org/slf4j/Logger",
+                                         "ROOT_LOGGER_NAME",
+                                         "Ljava/lang/String;")
+
+    rootLogger = javabridge.static_call("org/slf4j/LoggerFactory",
+                                "getLogger",
+                                "(Ljava/lang/String;)Lorg/slf4j/Logger;",
+                                rootLoggerName)
+
+    logLevel = javabridge.get_static_field("ch/qos/logback/classic/Level",
+                                   "WARN",
+                                   "Lch/qos/logback/classic/Level;")
+
+    javabridge.call(rootLogger,
+            "setLevel",
+            "(Lch/qos/logback/classic/Level;)V",
+            logLevel)
+
+def get_section_from_vsi(path, dims, chan, series_hires=8):
+
+    # myloglevel="ERROR"
+    # rootLoggerName = javabridge.get_static_field("org/slf4j/Logger","ROOT_LOGGER_NAME", "Ljava/lang/String;")
+    # rootLogger = javabridge.static_call("org/slf4j/LoggerFactory","getLogger", "(Ljava/lang/String;)Lorg/slf4j/Logger;", rootLoggerName)
+    # logLevel = javabridge.get_static_field("ch/qos/logback/classic/Level",myloglevel, "Lch/qos/logback/classic/Level;")
+
+    dims = check_bounds(path, dims, series_hires)
+
+    with bf.ImageReader(path) as reader:
+        planes = []
+        for z in range(3):
+            im = reader.read(c=chan, z=z, series=series_hires, XYWH=dims)
+            planes.append(im)
+
+    img = np.dstack(planes)
+    img = img_as_uint(img)
+
+    return img
+
+def check_bounds(path, dims, series):
+
+    logger.info("{}, {}, {}".format(path, dims, series))
+
+    dims = list(dims)
+
+    myXML = bf.get_omexml_metadata(path)
+    o = bf.OMEXML(myXML)
+    X = o.image(series).Pixels.get_SizeX()
+    Y = o.image(series).Pixels.get_SizeY()
+
+    if X < (dims[0] + dims[2]):
+        dims[0] = X - dims[2]
+
+    if Y < (dims[1] + dims[3]):
+        dims[1] = Y - dims[3]
+
+    return tuple(dims)
+
 def edf(image):
 
     result_image = None
+    image = np.transpose(image, (2, 0, 1))
     test_image = cle.push(image)
     result_image = cle.extended_depth_of_focus_variance_projection(test_image, result_image, radius_x=2, radius_y=2, sigma=10)
 
-    return img_as_uint( cle.pull(result_image) )
+    print(type(result_image), np.max(result_image))
+
+    return cle.pull(result_image).astype("uint16")
+
+_init_logger()
 
 f = open("../config_hires.json")
 config_data = json.load(f)
@@ -96,34 +171,36 @@ for animal in args_dict["animals"]:
 
     os.chdir(os.path.join(".", "rawdata"))
 
-    channel_strings = args_dict["channels"].split()
-    for chan in channel_strings:
-        chan_path = os.path.join("..", "chan{}".format(chan))
-        if not os.path.isdir(chan_path):
-            os.mkdir(chan_path)
-        # else:
-        #     if not check_existing_files(chan_path, args_dict["overwrite"]):
-        #         print("exiting")
-
     vsi_files = [vsi for vsi in os.listdir(".") if vsi.endswith(".vsi")]
     logger.info("Found {} .vsi files".format(len(vsi_files)))
 
     if len(vsi_files) > 0:
-        temp_folder = "/data_temp/{}/rawdata".format(animal)
+        temp_folder = "/data_temp/{}".format(animal)
         if not os.path.exists(temp_folder):
             os.makedirs(temp_folder)
-            subprocess.call("cp . {} -r".format(temp_folder), shell=True)
+            subprocess.call("cp .. {} -r".format(temp_folder), shell=True)
         os.chdir(temp_folder)
     else:
         print("No .vsi files. Exiting.")
         sys.exit(2)
 
+    channel_strings = args_dict["channels"].split()
+    for chan in channel_strings:
+        chan_path = os.path.join(".", "hires", "chan{}".format(chan))
+        if not os.path.isdir(chan_path):
+            os.makedirs(chan_path)
+        # else:
+        #     if not check_existing_files(chan_path, args_dict["overwrite"]):
+        #         print("exiting")
+
+
     for vsi in vsi_files:
         print(vsi)
         tic = perf_counter()
         stub = vsi.split(".")[0]
-        vsipath = os.path.join(os.getcwd(), vsi)
-        roipath = os.path.join(os.getcwd(), stub + "_ROIs.zip")
+        logger.info("{}".format(os.getcwd()))
+        vsipath = os.path.join(os.getcwd(), "rawdata", vsi)
+        roipath = os.path.join(os.getcwd(), "rawdata", stub + "_ROIs.zip")
         series_rois = args_dict["series_rois"]
         series_hires = args_dict["series_hires"]
         rotate = args_dict["rotate"]
@@ -131,33 +208,57 @@ for animal in args_dict["animals"]:
         logger.info("Using python-bioformats to process {}".format(vsi))
 
         rois = get_scaled_roi(roipath)
-        print(rois)
 
-        for roi in rois:
+        # keys = ["_s00{}".format(i) for i in range(8,15)]
+        
+        # original_keys = list(rois.keys())
+        # for key in original_keys:
+        #     if key not in keys:
+        #         rois.pop(key)
+
+        for roi, dims in rois.items():
+            roi_tic = perf_counter()
             for chan in channel_strings:
-                chan_path = os.path.join("..", "chan{}".format(chan))
-                if os.path.exists(os.path.join(chan_path, stub + ".png")):
+                chan_path = os.path.join(os.getcwd(), "hires", "chan{}".format(chan))
+                logger.info("looking for {}".format(os.path.join(chan_path, stub + roi + ".png")))
+                if os.path.exists(os.path.join(chan_path, stub + roi + ".png")):
                     if args_dict["overwrite"] == False:
                         logger.info("PNG file already exists for {}, channel {}".format(stub, chan))
                         continue
+                im = get_section_from_vsi(vsipath, dims, chan)
+                try:
+                    im = get_section_from_vsi(vsipath, dims, chan)
+                except:
+                    logger.warning("Could not process {} for channel {}".format(roi, chan))
+                    continue
+                logger.info("Using extended depth of focus to process {} for channel {}".format(roi, chan))
+                result = edf(im)
 
-                im = get_section_from_vsi(vsipath, roi.item(), chan)
-                logger.info("Using extended depth of focus to process {} for channel {}".format(tif_file, chan))
-                result = edf(im, int(chan))
+                result = np.rot90(result, 2)
 
-                imsave(os.path.join(chan_path, stub + ".png"), result)
+                imsave(os.path.join(chan_path, "{}{}.png".format(stub,roi)), result)
                 logger.info("Saving 16-bit .png to {}".format(chan_path))
+                # copy probably quicker
+                # imsave(os.path.join(folder, "hires", "chan{}".format(chan), "{}{}.png".format(stub,roi)), result)
+                f = "{}{}.png".format(stub,roi)
+                subprocess.call("cp {} {}".format(os.path.join(chan_path, f), os.path.join(folder, animal, "hires", "chan{}".format(chan))), shell=True)
+                
+            roi_toc = perf_counter()
+            print("Section {} took {} sec".format(roi, roi_toc-roi_tic))
 
         toc = perf_counter()
         logger.info("Processed {} in {:0.4f} sec".format(vsi, toc-tic))
+    
+    javabridge.kill_vm()
 
-    target_dir = os.path.join(folder, animal, "hires")
-    if not os.path.exists(target_dir):
-        os.makedirs(target_dir)
+    # target_dir = os.path.join(folder, animal, "hires")
+    # if not os.path.exists(target_dir):
+    #     os.makedirs(target_dir)
         
-    for chan in channel_strings:
-        chan_path = os.path.join("..", "chan{}".format(chan))
-        subprocess.call("cp -r {} {}".format(os.path.abspath(chan_path), target_dir), shell=True)
+    # for chan in channel_strings:
+    #     chan_path = os.path.join(os.getcwd(), "chan{}".format(chan))
+    #     for f in [f for f in os.listdir(chan_path) if f.endswith(".png")]:
+    #         subprocess.call("cp {} {}".format(os.path.join(chan_path, f), os.path.join(target_dir, "chan{}".format(chan)), shell=True))
 
     if args_dict["delete_intermediates"]:
         subprocess.call("rm /data_temp/{} -r".format(animal), shell=True)
