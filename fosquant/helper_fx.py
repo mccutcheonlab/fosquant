@@ -86,8 +86,9 @@ def get_scaled_roi(roipath, series_hires=8, series_lowres=12):
 
     rois = {}
     for item in roidata:
-    s = roidata[item]
-    x, y, w, h = s["left"], s["top"], s["width"], s["height"]
-    rois[item] = tuple([dim*scale_factor for dim in (x,y,w,h)])
+        s = roidata[item]
+        x, y, w, h = s["left"], s["top"], s["width"], s["height"]
+        rois[item] = tuple([dim*scale_factor for dim in (x,y,w,h)])
 
     return rois
+
