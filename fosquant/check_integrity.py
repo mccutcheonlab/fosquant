@@ -1,10 +1,6 @@
 import os
 from read_roi import read_roi_zip
-from helper_fx import setup_logger
-
-def flatten_list(listoflists):
-    flat_list = [item for sublist in listoflists for item in sublist]
-    return flat_list
+from helper_fx import setup_logger, flatten_list
 
 def check_rawdata(project_dir, logger):
 
@@ -82,6 +78,7 @@ def check_hires(project_dir, logger, rois=None):
         png_files = [png for png in os.listdir(chan_dir) if png.endswith(".png")] # need to ensure only pngs pre-cellpose
         if len(png_files) == 0:
             logger.warning("No PNGs found in {}".format(chan_dir))
+            return False
         else:
             logger.info("Found {} .png files".format(len(png_files)))
             section_names = [s.split(".")[0].split("_")[-1] for s in png_files]
@@ -90,8 +87,10 @@ def check_hires(project_dir, logger, rois=None):
                 print(section_names)
                 if rois == section_names:
                     logger.info("ROIs from ROI file match hires sections in {}".format(chan_dir))
+                    return True
                 else:
                     logger.warning("ROIs from ROI file DO NOT MATCH hires sections in {}".format(chan_dir))
+                    return False
 
     # jpg_files = [jpg for jpg in os.listdir(lowres_dir) if jpg.endswith(".jpg")]
     # logger.info("Found {} .jpg files".format(len(jpg_files)))
