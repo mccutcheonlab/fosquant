@@ -13,7 +13,15 @@ import subprocess
 import queue
 import threading
 
-commands = ["cellpose", "jupyter notebook", "code .", "cellpose"]
+cellpose_template_string = "python -m cellpose --dir {} --pretrained_model cyto --chan 1 --chan2 0 --diameter {} --verbose --use_gpu --save_png --fast_mode"
+
+diameter = 9.82
+
+
+commands = []
+commands.append(cellpose_template_string.format("/home/jaime/Data/FT106/chan3", diameter))
+commands.append(cellpose_template_string.format("/home/jaime/Data/FT108/chan3", diameter))
+commands.append(cellpose_template_string.format("/home/jaime/Data/cropped/chan2", diameter))
 
 q = queue.Queue()
 result = {}  # used to store the results
@@ -29,7 +37,7 @@ def worker():
 
     # result[fileName] = checksum  # store it
 
-threads = [ threading.Thread(target=worker) for _i in range(4) ]
+threads = [ threading.Thread(target=worker) for _i in range(2) ]
 for thread in threads:
   thread.start()
   q.put(None)  # one Sentinel marker for each thread
