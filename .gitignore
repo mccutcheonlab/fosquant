@@ -161,4 +161,5 @@ testscript.py
 
 *.tif
 *.png
+
 *.json
