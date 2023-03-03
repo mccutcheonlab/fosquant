@@ -16,7 +16,7 @@ def parse_args(argv, config_data):
     args_dict["animals"] = ""
     args_dict["channels"] = ""
     args_dict["overwrite"] = False
-    args_dict["check_integrity"] = True
+    args_dict["skip_integrity_check"] = False
 
     try:
         opts, args = getopt.getopt(argv[1:], "a:c:r:oi")
@@ -35,7 +35,7 @@ def parse_args(argv, config_data):
         elif opt in ("-o", "--overwrite"):
             args_dict["overwrite"] = True
         elif opt in ("-i", "--check_integrity"):
-            args_dict["check_integrity"] = True 
+            args_dict["skip_integrity_check"] = True 
 
     print("Arguments parsed successfully")
     
@@ -81,12 +81,12 @@ for animal in args_dict["animals"]:
     channel_strings = args_dict["channels"].split()
     for chan in channel_strings:
         print(chan)
-
-        if check_hires(os.path.join(folder, animal), logger, rois=rois):
-            logger.info("Integrity check of HIRES folder is passed. Continuing with cellpose")
-        else:
-            print("failed")
-            continue
+        if args_dict["skip_integrity_check"] == False:
+            if check_hires(os.path.join(folder, animal), logger, rois=rois):
+                logger.info("Integrity check of HIRES folder is passed. Continuing with cellpose")
+            else:
+                print("failed")
+                continue
         
         chan_path = os.path.join(folder, animal, "hires", "chan{}".format(chan))
         model = os.path.join(folder, "models", args_dict["model_chan{}".format(chan)])
