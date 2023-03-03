@@ -76,12 +76,11 @@ for animal in args_dict["animals"]:
 
     os.chdir(os.path.join(".", "hires"))
 
-    rois = get_rois(os.path.join(folder, animal, "rawdata"))
-
     channel_strings = args_dict["channels"].split()
     for chan in channel_strings:
         print(chan)
         if args_dict["skip_integrity_check"] == False:
+            rois = get_rois(os.path.join(folder, animal, "rawdata"))
             if check_hires(os.path.join(folder, animal), logger, rois=rois):
                 logger.info("Integrity check of HIRES folder is passed. Continuing with cellpose")
             else:
