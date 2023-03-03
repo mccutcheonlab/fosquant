@@ -6,6 +6,10 @@ from datetime import datetime
 
 from read_roi import read_roi_zip
 
+def flatten_list(listoflists):
+    flat_list = [item for sublist in listoflists for item in sublist]
+    return flat_list
+
 def setup_logger(projectdir):
     """Sets up logging by creating a logger object and making a directory if needed.
 
@@ -86,8 +90,23 @@ def get_scaled_roi(roipath, series_hires=8, series_lowres=12):
 
     rois = {}
     for item in roidata:
-    s = roidata[item]
-    x, y, w, h = s["left"], s["top"], s["width"], s["height"]
-    rois[item] = tuple([dim*scale_factor for dim in (x,y,w,h)])
+        s = roidata[item]
+        x, y, w, h = s["left"], s["top"], s["width"], s["height"]
+        rois[item] = tuple([dim*scale_factor for dim in (x,y,w,h)])
+        s = roidata[item]
+        x, y, w, h = s["left"], s["top"], s["width"], s["height"]
+        rois[item] = tuple([dim*scale_factor for dim in (x,y,w,h)])
+
+    return rois
+
+def get_rois(path):
+    roifiles = [os.path.join(path,f) for f in os.listdir(path) if f.endswith("ROIs.zip")]
+
+    rois = []
+    for roipath in roifiles:
+        roidata = read_roi_zip(roipath)
+        rois.append(list(roidata.keys()))
+
+    rois = [roi.replace("_", "") for roi in flatten_list(rois)]
 
     return rois

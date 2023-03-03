@@ -11,6 +11,8 @@ path = "/mnt/d/TestData/fostrap/FTIG/FT108/rawdata/FT108_1A.vsi"
 roipath = "/mnt/d/TestData/fostrap/FTIG/FT108/rawdata/FT108_1A_ROIs.zip"
 # path = "/mnt/c/Github/fosquant/fosquant/result.tif"
 
+path ="/data_temp/FT151/rawdata"
+
 # %%
 reader = bf.ImageReader(path)
 omeMeta = bf.metadatatools.createOMEXMLMetadata()
