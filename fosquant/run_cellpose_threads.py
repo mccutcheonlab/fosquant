@@ -97,9 +97,9 @@ for animal in args_dict["animals"]:
             logger.info("Mask files detected in output folder. Exiting.")
             continue
 
-        cellpose_template_string = "python -m cellpose --dir {} --pretrained_model {} --chan 1 --chan2 0 --diameter {} --verbose --use_gpu --save_png --fast_mode --no_npy"
-        # subprocess.call(cellpose_template_string.format(chan_path, model, diameter), shell=True)
-        print(cellpose_template_string.format(chan_path, model, diameter))
+        cellpose_template_string = "python -m cellpose --dir {} --pretrained_model {} --chan 0 --chan2 0 --diameter {} --verbose --use_gpu --save_png --fast_mode --no_npy --batch_size 8"
+        subprocess.call(cellpose_template_string.format(chan_path, model, diameter), shell=True)
+        # print(cellpose_template_string.format(chan_path, model, diameter))
 
         # p = []
         # p.append("cellpose ")
