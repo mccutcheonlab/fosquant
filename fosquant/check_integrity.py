@@ -98,7 +98,7 @@ def check_hires(project_dir, logger, rois=None):
     # look for pngs, if none alert and move on, if some check that all exist
     # look for cellpose output
 
-def check_masks(project_dir, logger):
+def check_masks(project_dir, logger, rois=None):
 
     logger.info("Checking whether PNG masks exist...")
 
@@ -117,10 +117,10 @@ def check_masks(project_dir, logger):
             return False
         else:
             logger.info("Found {} .png files".format(len(png_files)))
-            section_names = [s.split(".")[0].split("_")[-1] for s in png_files]
+            section_names = [s.split(".")[0].split("_")[-3] for s in png_files]
             print(section_names)
             if rois != None:
-                print(rois)
+                print("The rois are", rois)
                 print(section_names)
                 if rois == section_names:
                     logger.info("ROIs from ROI file match mask files in {}".format(chan_dir))
@@ -131,11 +131,13 @@ def check_masks(project_dir, logger):
 
 if __name__ == "__main__":
     project_dir = "D:\\TestData\\fostrap\\FTIG\\FT108"
-    project_dir = "/mnt/d/TestData/fostrap/FTIG/FT108"
+    project_dir = "/mnt/d/TestData/fostrap/FTIG/FT106"
 
     logger = setup_logger(project_dir)
 
     rois = check_rawdata(project_dir, logger)
+
+    print(rois)
 
     if rois != None:
         check_lowres(project_dir, logger, rois=rois)
@@ -145,6 +147,8 @@ if __name__ == "__main__":
         check_lowres(project_dir, logger)
         check_hires(project_dir, logger)
         check_masks(project_dir, logger)
+
+    
 
 
 
