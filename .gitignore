@@ -155,7 +155,8 @@ data/*
 config.json
 config_hires.json
 config_lowres.json
-testscript.py
+test*.py
+test*.ipynb
 
 *.code-workspace
 
@@ -163,3 +164,4 @@ testscript.py
 *.png
 
 *.json
+
