@@ -16,7 +16,7 @@ def parse_args(argv, config_data):
     args_dict["animals"] = ""
     args_dict["channels"] = ""
     args_dict["overwrite"] = False
-    args_dict["check_integrity"] = True
+    args_dict["skip_integrity_check"] = False
 
     try:
         opts, args = getopt.getopt(argv[1:], "a:c:r:oi")
@@ -35,7 +35,7 @@ def parse_args(argv, config_data):
         elif opt in ("-o", "--overwrite"):
             args_dict["overwrite"] = True
         elif opt in ("-i", "--check_integrity"):
-            args_dict["check_integrity"] = True 
+            args_dict["skip_integrity_check"] = True 
 
     print("Arguments parsed successfully")
     
@@ -76,17 +76,16 @@ for animal in args_dict["animals"]:
 
     os.chdir(os.path.join(".", "hires"))
 
-    rois = get_rois(os.path.join(folder, animal, "rawdata"))
-
     channel_strings = args_dict["channels"].split()
     for chan in channel_strings:
         print(chan)
-
-        if check_hires(os.path.join(folder, animal), logger, rois=rois):
-            logger.info("Integrity check of HIRES folder is passed. Continuing with cellpose")
-        else:
-            print("failed")
-            continue
+        if args_dict["skip_integrity_check"] == False:
+            rois = get_rois(os.path.join(folder, animal, "rawdata"))
+            if check_hires(os.path.join(folder, animal), logger, rois=rois):
+                logger.info("Integrity check of HIRES folder is passed. Continuing with cellpose")
+            else:
+                print("failed")
+                continue
         
         chan_path = os.path.join(folder, animal, "hires", "chan{}".format(chan))
         model = os.path.join(folder, "models", args_dict["model_chan{}".format(chan)])
@@ -97,9 +96,9 @@ for animal in args_dict["animals"]:
             logger.info("Mask files detected in output folder. Exiting.")
             continue
 
-        cellpose_template_string = "python -m cellpose --dir {} --pretrained_model {} --chan 1 --chan2 0 --diameter {} --verbose --use_gpu --save_png --fast_mode --no_npy"
-        # subprocess.call(cellpose_template_string.format(chan_path, model, diameter), shell=True)
-        print(cellpose_template_string.format(chan_path, model, diameter))
+        cellpose_template_string = "python -m cellpose --dir {} --pretrained_model {} --chan 0 --chan2 0 --diameter {} --verbose --use_gpu --save_png --fast_mode --no_npy --batch_size 8"
+        subprocess.call(cellpose_template_string.format(chan_path, model, diameter), shell=True)
+        # print(cellpose_template_string.format(chan_path, model, diameter))
 
         # p = []
         # p.append("cellpose ")

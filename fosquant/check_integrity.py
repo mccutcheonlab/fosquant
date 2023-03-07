@@ -75,7 +75,7 @@ def check_hires(project_dir, logger, rois=None):
 
     for chan in chans:
         chan_dir = os.path.join(hires_dir, chan)
-        png_files = [png for png in os.listdir(chan_dir) if png.endswith(".png")] # need to ensure only pngs pre-cellpose
+        png_files = [png for png in os.listdir(chan_dir) if (png.endswith(".png")) and ("masks" not in png)] # need to ensure only pngs pre-cellpose
         if len(png_files) == 0:
             logger.warning("No PNGs found in {}".format(chan_dir))
             return False
