@@ -9,7 +9,7 @@ from skimage.draw import polygon2mask
 from skimage.io import imread
 from skimage.measure import find_contours
 import pandas as pd
-from multiprocessing import Pool
+from multiprocessing import Pool, cpu_count
 
 from helper_fx import *
 from check_integrity import *
@@ -169,24 +169,19 @@ for animal in args_dict["animals"]:
     
     animals_to_process.append(animal)
 
-folders = [folder]*len(animals_to_process)
-print(folders)
+pool_args = [(folder, animal) for animal in animals_to_process]
 
-pool = Pool(processes=6)
+pool_size = cpu_count()
+with Pool(processes=pool_size) as pool:
+    list_of_pooled_dfs = pool.starmap(process_rois, pool_args)
 
-try:
-    df = pool.starmap(process_rois, (folder, animal))
-    list_of_dfs.append(df)
-except FileNotFoundError:
-    print("Files not available for {}".format(animal))
+# df_main = pd.concat(list_of_dfs+list_of_pooled_dfs)
 
-df_main = pd.concat(list_of_dfs)
+# results_folder = os.path.join(folder, "results")
+# if not os.path.exists(results_folder):
+#     os.mkdir(results_folder)
 
-results_folder = os.path.join(folder, "results")
-if not os.path.exists(results_folder):
-    os.mkdir(results_folder)
-
-df_main.to_csv(os.path.join(results_folder, "df_user_counts.csv"))
+# df_main.to_csv(os.path.join(results_folder, "df_user_counts.csv"))
 
 # df_main = pd.read_csv(os.path.join(results_folder, "df_user_counts.csv"))
 
