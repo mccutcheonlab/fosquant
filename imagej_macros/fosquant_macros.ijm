@@ -136,7 +136,8 @@ macro "Export lowres [E]" {
 //		parent = getInfo("image.directory");
 //	}
 	
-	parent = getInfo("image.directory");
+	currentDir = getInfo("image.directory");
+	parent = File.getParent(currentDir)
 	vsiName = getInfo("image.filename");
 	basename = replace(vsiName, ".vsi", "");
 	

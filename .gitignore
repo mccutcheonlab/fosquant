@@ -152,3 +152,16 @@ cython_debug/
 #.idea/
 
 data/*
+config.json
+config_hires.json
+config_lowres.json
+test*.py
+test*.ipynb
+
+*.code-workspace
+
+*.tif
+*.png
+
+*.json
+
