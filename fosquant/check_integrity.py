@@ -128,6 +128,20 @@ def check_masks(project_dir, logger, rois=None):
                 else:
                     logger.warning("ROIs from ROI file DO NOT MATCH mask files in {}".format(chan_dir))
                     return False
+                
+def check_user_rois(project_dir, logger):
+    
+    logger.info("Checking whether user-defined ROI file exist...")
+
+    lowres_dir = os.path.join(project_dir, "lowres")
+    if not os.path.exists(lowres_dir):
+        logger.warning("No lowres folder exists in {}".format(project_dir))
+        return False
+    
+    roi_files = [f for f in os.listdir(lowres_dir) if "ROIs.zip" in f]
+    if len(roi_files) > 0:
+        return True
+    else: return False
 
 if __name__ == "__main__":
     project_dir = "D:\\TestData\\fostrap\\FTIG\\FT108"
