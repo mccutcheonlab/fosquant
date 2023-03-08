@@ -9,6 +9,7 @@ from skimage.draw import polygon2mask
 from skimage.io import imread
 from skimage.measure import find_contours
 import pandas as pd
+from multiprocessing import Pool
 
 from helper_fx import *
 from check_integrity import *
@@ -144,6 +145,8 @@ else:
 print(args_dict["animals"])
 
 list_of_dfs = []
+animals_to_process = []
+
 for animal in args_dict["animals"]:
     existing_csv_path = os.path.join(folder, animal, "lowres", "user_rois_{}.csv".format(animal))
 
@@ -163,11 +166,19 @@ for animal in args_dict["animals"]:
             continue
     else:
         print("Skipping integrity check... Could be issues with analysis.")
-        
-    try:
-        list_of_dfs.append(process_rois(folder, animal))
-    except FileNotFoundError:
-        print("Files not available for {}".format(animal))
+    
+    animals_to_process.append(animal)
+
+folders = [folder]*len(animals_to_process)
+print(folders)
+
+pool = Pool(processes=6)
+
+try:
+    df = pool.starmap(process_rois, (folder, animal))
+    list_of_dfs.append(df)
+except FileNotFoundError:
+    print("Files not available for {}".format(animal))
 
 df_main = pd.concat(list_of_dfs)
 
