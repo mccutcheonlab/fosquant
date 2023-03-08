@@ -132,6 +132,7 @@ def check_masks(project_dir, logger, rois=None):
 if __name__ == "__main__":
     project_dir = "D:\\TestData\\fostrap\\FTIG\\FT108"
     project_dir = "/mnt/d/TestData/fostrap/FTIG/FT106"
+    project_dir = "/data/FTIG/FT106"
 
     logger = setup_logger(project_dir)
 
