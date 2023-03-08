@@ -12,6 +12,7 @@ from matplotlib import pyplot as plt
 import pandas as pd
 
 from helper_fx import *
+from check_integrity import *
 
 def parse_args(argv, config_data):
     args_dict = config_data
@@ -70,11 +71,11 @@ def get_coloc(im1, im2, roi_coords):
     
     return len(find_contours(coloc, 0.8))
 
-def process_rois(folder, mouse, rois=[]):
+def process_rois(folder, animal, rois=[]):
     # set folder names
-    hirespath = os.path.join(folder, mouse, "hires")
-    lowrespath = os.path.join(folder, mouse, "lowres")
-    roipath = os.path.join(lowrespath, "{}_userdefined_ROIs.zip".format(mouse))
+    hirespath = os.path.join(folder, animal, "hires")
+    lowrespath = os.path.join(folder, animal, "lowres")
+    roipath = os.path.join(lowrespath, "{}_userdefined_ROIs.zip".format(animal))
     
     # load in roi file
     roidata = read_roi_zip(roipath)   
@@ -104,7 +105,7 @@ def process_rois(folder, mouse, rois=[]):
         
         area = np.sum(polygon2mask(im_fos.shape, xy))
         
-        section_data = {"mouse": [mouse], "section": [section], "region": [region], "area": [area], "nfos": [nfos], "ntrap": [ntrap], "ncoloc": [ncoloc]}
+        section_data = {"animal": [animal], "section": [section], "region": [region], "area": [area], "nfos": [nfos], "ntrap": [ntrap], "ncoloc": [ncoloc]}
         
         df_temp = pd.DataFrame(section_data)
  
@@ -112,7 +113,7 @@ def process_rois(folder, mouse, rois=[]):
         
     df = pd.concat(features, ignore_index=True)
 
-    df.to_csv(os.path.join(lowrespath, "user_rois_{}.csv".format(mouse)))
+    df.to_csv(os.path.join(lowrespath, "user_rois_{}.csv".format(animal)))
 
     return df
 
@@ -138,12 +139,17 @@ list_of_dfs = []
 for animal in args_dict["animals"]:
     existing_csv_path = os.path.join(folder, animal, "lowres", "user_rois_{}.csv".format(animal))
     if os.path.exists(existing_csv_path):
-        list_of_dfs.append(pd.read_csv(existing_csv_path))
+        df = pd.read_csv(existing_csv_path)
+        if "mouse" in df.columns:
+            df.rename({"mouse": "animal"}, inplace=True)
+        list_of_dfs.append(df)
     else:
-        try:
-            list_of_dfs.append(process_rois(folder, animal))
-        except FileNotFoundError:
-            print("Files not available for {}".format(animal))
+        rois = check_rawdata(os.path.join(folder, animal), logger)
+        if check_masks(os.path.join(folder, animal), logger, rois=rois):
+            try:
+                list_of_dfs.append(process_rois(folder, animal))
+            except FileNotFoundError:
+                print("Files not available for {}".format(animal))
 
 df_main = pd.concat(list_of_dfs)
 
@@ -152,3 +158,26 @@ if not os.path.exists(results_folder):
     os.mkdir(results_folder)
 
 df_main.to_csv(os.path.join(results_folder, "df_user_counts.csv"))
+
+# df_main = pd.read_csv(os.path.join(results_folder, "df_user_counts.csv"))
+
+# df_meta =  pd.read_csv(os.path.join(folder, "metafile_ftig.csv"))
+
+# df_meta.set_index("animal", inplace=True)
+
+# df_meta.drop(["folder", "slide1A", "slide1B", "slide1C"], axis=1, inplace=True)
+
+# df_main.join(df_meta, on="animal")
+
+print(df_main.head())
+
+print(df_meta.head())
+
+print(df_main.head())
+# df_main.to_csv(os.path.join(results_folder, "df_user_counts_with_groups.csv"))
+
+
+# For speeding up consider processing each animal in parallel using threading / pooling
+# see this thread https://stackoverflow.com/questions/19695249/load-just-part-of-an-image-in-python
+
+# also add verbose option to silence logging and reporting on cell counts
