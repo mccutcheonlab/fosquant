@@ -10,7 +10,7 @@ class Check():
 
         self.rawdata_dir = os.path.join(self.folder, "rawdata")
         self.lowres_dir = os.path.join(self.folder, "lowres")
-        self.hires_dir = os.path.join(project_dir, "hires")
+        self.hires_dir = os.path.join(self.folder, "hires")
 
     def set_verbose(self):
         self.verbose=True
@@ -52,7 +52,12 @@ class Check():
             return False
         
         for roifile in self.roifiles:
-            temp_roidata = read_roi_zip(os.path.join(self.rawdata_dir, roifile))
+            try:
+                temp_roidata = read_roi_zip(os.path.join(self.rawdata_dir, roifile))
+            except:
+                self.logger.warning("{} may not be a zipfile".format(roifile))
+                continue
+            
             self.rois.append(list(temp_roidata.keys()))
             
         self.rois = [roi.replace("_", "") for roi in flatten_list(self.rois)]
@@ -200,12 +205,12 @@ class Check():
             return False
         
     def check_all(self):
-        if not check.check_rawdata(): return False
-        if not check.check_vsi_rois(): return False
-        if not check.check_lowres(): return False
-        if not check.check_hires(): return False
-        if not check.check_masks(): return False
-        if not check.check_user_rois(): return False
+        if not self.check_rawdata(): return False
+        if not self.check_vsi_rois(): return False
+        if not self.check_lowres(): return False
+        if not self.check_hires(): return False
+        if not self.check_masks(): return False
+        if not self.check_user_rois(): return False
         self.logger("All integrity checks passed for {}".format(self.folder))
         return True
 
