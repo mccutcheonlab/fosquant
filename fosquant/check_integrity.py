@@ -2,166 +2,242 @@ import os
 from read_roi import read_roi_zip
 from helper_fx import setup_logger, flatten_list
 
-def check_rawdata(project_dir, logger):
+class Check():
+    def __init__(self, folder, logger):
+        self.folder = folder
+        self.logger = logger
+        self.verbose = False
 
-    logger.info("Checking integrity of RAWDATA folder...")
+        self.rawdata_dir = os.path.join(self.folder, "rawdata")
+        self.lowres_dir = os.path.join(self.folder, "lowres")
+        self.hires_dir = os.path.join(project_dir, "hires")
 
-    rawdata_dir = os.path.join(project_dir, "rawdata")
-    if not os.path.exists(rawdata_dir):
-        logger.warning("No rawdata folder exists in {}".format(project_dir))
-        return False
+    def set_verbose(self):
+        self.verbose=True
 
-    vsi_files = [vsi for vsi in os.listdir(rawdata_dir) if vsi.endswith(".vsi")]
-    logger.info("Found {} .vsi files".format(len(vsi_files)))
+    def check_rawdata(self):
 
-    rois = []
-    if len(vsi_files) > 0:
-        for vsi in vsi_files:
+        if self.verbose: logger.info("Checking integrity of RAWDATA folder...")
+
+        if not os.path.exists(self.rawdata_dir):
+            self.logger.warning("No rawdata folder exists in {}".format(self.folder))
+            return False
+
+        self.vsi_files = [vsi for vsi in os.listdir(self.rawdata_dir) if vsi.endswith(".vsi")]
+        if len(self.vsi_files) == 0:
+            self.logger.warning("No .vsi files found in rawdata for {}".format(self.folder))
+            return False
+
+        if self.verbose: self.logger.info("Found {} .vsi files".format(len(self.vsi_files)))
+
+        for vsi in self.vsi_files:
             scanfolder = "_{}_".format(vsi.split(".")[0])
-            if scanfolder not in os.listdir(rawdata_dir):
-                logger.warning("No matching vsi data folder found for {}".format(vsi))
+            if scanfolder not in os.listdir(self.rawdata_dir):
+                self.logger.warning("No matching vsi data folder found for {}".format(vsi))
                 return False
             else:
-                logger.info("Matching vsi data folder found for {}".format(vsi))
+                if self.verbose: self.logger.info("Matching vsi data folder found for {}".format(vsi))
 
-            roifile = "{}_ROIs.zip".format(vsi.split(".")[0])
-            if roifile not in os.listdir(rawdata_dir):
-                logger.warning("No ROI zip file found for {}".format(vsi))
-                return False
-            else:
-                logger.info("Matching ROI zip file found for {}".format(vsi))
-                roidata = read_roi_zip(os.path.join(rawdata_dir, roifile))
-                rois.append(list(roidata.keys()))
-        
-        rois = [roi.replace("_", "") for roi in flatten_list(rois)]
-    
-    logger.info("{} ROIs found.".format(len(rois)))
-    
-    return rois
-
-def check_lowres(project_dir, logger, rois=None):
-
-    logger.info("Checking integrity of LOWRES folder...")
-
-    lowres_dir = os.path.join(project_dir, "lowres")
-    if not os.path.exists(lowres_dir):
-        logger.warning("No lowres folder exists in {}".format(project_dir))
-        return False
-    
-    jpg_files = [jpg for jpg in os.listdir(lowres_dir) if jpg.endswith(".jpg")]
-    logger.info("Found {} .jpg files".format(len(jpg_files)))
-
-    if rois != None:
-        section_names = [s.split(".")[0].split("_")[-1] for s in jpg_files]
-        if rois == section_names:
-            logger.info("ROIs from ROI file match lowres sections")
-        else:
-            logger.warning("ROIs from ROI file DO NOT MATCH lowres sections")
-            return False
-            # add code to say where mismatch is
-
-    # check if .json exists (or other alignment files)
-
-def check_hires(project_dir, logger, rois=None):
-
-    logger.info("Checking integrity of HIRES folder...")
-
-    hires_dir = os.path.join(project_dir, "hires")
-    if not os.path.exists(hires_dir):
-        logger.warning("No hires folder exists in {}".format(project_dir))
-        return False
-    
-    chans = [folder for folder in os.listdir(hires_dir) if "chan" in folder]
-
-    for chan in chans:
-        chan_dir = os.path.join(hires_dir, chan)
-        png_files = [png for png in os.listdir(chan_dir) if (png.endswith(".png")) and ("masks" not in png)] # need to ensure only pngs pre-cellpose
-        if len(png_files) == 0:
-            logger.warning("No PNGs found in {}".format(chan_dir))
-            return False
-        else:
-            logger.info("Found {} .png files".format(len(png_files)))
-            section_names = [s.split(".")[0].split("_")[-1] for s in png_files]
-            if rois != None:
-                print(rois)
-                print(section_names)
-                if rois == section_names:
-                    logger.info("ROIs from ROI file match hires sections in {}".format(chan_dir))
-                    return True
-                else:
-                    logger.warning("ROIs from ROI file DO NOT MATCH hires sections in {}".format(chan_dir))
-                    return False
-
-    # jpg_files = [jpg for jpg in os.listdir(lowres_dir) if jpg.endswith(".jpg")]
-    # logger.info("Found {} .jpg files".format(len(jpg_files)))
-
-    # look for pngs, if none alert and move on, if some check that all exist
-    # look for cellpose output
-
-def check_masks(project_dir, logger, rois=None):
-
-    logger.info("Checking whether PNG masks exist...")
-
-    hires_dir = os.path.join(project_dir, "hires")
-    if not os.path.exists(hires_dir):
-        logger.warning("No hires folder exists in {}".format(project_dir))
-        return False
-    
-    chans = [folder for folder in os.listdir(hires_dir) if "chan" in folder]
-
-    for chan in chans:
-        chan_dir = os.path.join(hires_dir, chan)
-        png_files = [png for png in os.listdir(chan_dir) if (png.endswith(".png")) and ("masks" in png)] # need to ensure only masks files
-        if len(png_files) == 0:
-            logger.warning("No mask files found in {}".format(chan_dir))
-            return False
-        else:
-            logger.info("Found {} .png files".format(len(png_files)))
-            section_names = [s.split(".")[0].split("_")[-3] for s in png_files]
-            print(section_names)
-            if rois != None:
-                print("The rois are", rois)
-                print(section_names)
-                if rois == section_names:
-                    logger.info("ROIs from ROI file match mask files in {}".format(chan_dir))
-                    return True
-                else:
-                    logger.warning("ROIs from ROI file DO NOT MATCH mask files in {}".format(chan_dir))
-                    return False
-                
-def check_user_rois(project_dir, logger):
-    
-    logger.info("Checking whether user-defined ROI file exist...")
-
-    lowres_dir = os.path.join(project_dir, "lowres")
-    if not os.path.exists(lowres_dir):
-        logger.warning("No lowres folder exists in {}".format(project_dir))
-        return False
-    
-    roi_files = [f for f in os.listdir(lowres_dir) if "ROIs.zip" in f]
-    if len(roi_files) > 0:
         return True
-    else: return False
+
+    def get_section_rois(self):
+
+        if self.verbose: self.logger.info("Collecting ROI files from rawdata folder...")
+
+        self.rois = []
+        self.roifiles = [f for f in os.listdir(self.rawdata_dir) if "_ROIs.zip" in f]
+
+        if len(self.roifiles) == 0:
+            self.logger.warning("No ROI files found in rawdata for {}".format(self.folder))
+            return False
+        
+        for roifile in self.roifiles:
+            temp_roidata = read_roi_zip(os.path.join(self.rawdata_dir, roifile))
+            self.rois.append(list(temp_roidata.keys()))
+            
+        self.rois = [roi.replace("_", "") for roi in flatten_list(self.rois)]
+        if self.verbose: self.logger.info("{} ROIs found for {}".format(len(self.rois), self.folder))
+        
+        return True
+
+    def check_vsi_rois(self):
+
+        if self.verbose: self.logger.info("Checking whether ROIs match .vsi files...")
+
+        if not self.get_section_rois():
+            return False
+        
+        if not hasattr(self, "vsi_files"):
+            if not self.check_rawdata():
+                return False
+        
+        for vsi in self.vsi_files:
+            expected_roifile = "{}_ROIs.zip".format(vsi.split(".")[0])
+            if expected_roifile not in self.roifiles:
+                self.logger.warning("No ROI zip file found for {}".format(vsi))
+                return False
+            else:
+                if self.verbose: self.logger.info("Matching ROI zip file found for {}".format(vsi))
+        
+        return True
+
+    def check_lowres(self):
+
+        if self.verbose: logger.info("Checking integrity of LOWRES folder...")
+
+        if not os.path.exists(self.lowres_dir):
+            self.logger.warning("No lowres folder exists in {}".format(project_dir))
+            return False
+        
+        self.jpg_files = [jpg for jpg in os.listdir(self.lowres_dir) if jpg.endswith(".jpg")]
+        if len(self.jpg_files) == 0:
+            self.logger.warning("No .jpgs found in lowres for {}".format(self.folder))
+            return False
+        
+        if self.verbose: self.logger.info("Found {} .jpg files".format(len(self.jpg_files)))
+
+        if hasattr(self, "rois"):
+            section_names = [s.split(".")[0].split("_")[-1] for s in self.jpg_files]
+            if self.rois == section_names:
+                if self.verbose: self.logger.info("All ROIs detected match lowres sections")
+            else:
+                self.logger.warning("ROIs from ROI file DO NOT MATCH lowres sections")
+                return False
+                # add code to say where mismatch is
+        else:
+            self.logger.warning("No ROIs found to match")
+
+        # check if .json exists (or other alignment files)
+
+    def check_hires(self):
+
+        if self.verbose: logger.info("Checking integrity of HIRES folder for {}".format(self.folder))
+
+        if not os.path.exists(self.hires_dir):
+            self.logger.warning("No hires folder exists in {}".format(self.folder))
+            return False
+        
+        self.chans = [folder for folder in os.listdir(self.hires_dir) if "chan" in folder]
+        if len(self.chans) == 0:
+            self.logger.warning("No channel folders found in {}".format(self.hires_dir))
+            return False
+
+        for chan in self.chans:
+            chan_dir = os.path.join(self.hires_dir, chan)
+            self.png_files = [png for png in os.listdir(chan_dir) if (png.endswith(".png")) and ("masks" not in png)] # need to ensure only pngs pre-cellpose
+            if len(self.png_files) == 0:
+                self.logger.warning("No PNGs found in {}".format(chan_dir))
+                return False
+
+            if self.verbose: self.logger.info("Found {} .png files".format(len(self.png_files)))
+            section_names = [s.split(".")[0].split("_")[-1] for s in self.png_files]
+
+            if not hasattr(self, "rois"):
+                if not self.get_section_rois():
+                    self.logger.warning("No section ROIs available for {}".format(self.folder))
+                    return False
+
+            print(self.rois)
+            print(section_names)
+            if self.rois == section_names:
+                if self.verbose: self.logger.info("ROIs from ROI file match hires sections in {}".format(chan_dir))
+                return True
+            else:
+                logger.warning("ROIs from ROI file DO NOT MATCH hires sections in {}".format(chan_dir))
+                return False
+
+    def check_masks(self):
+
+        logger.info("Checking whether PNG masks exist for {}".format(self.folder))
+
+        if not os.path.exists(self.hires_dir):
+            logger.warning("No hires folder exists in {}".format(self.folder))
+            return False
+        
+        self.chans = [folder for folder in os.listdir(self.hires_dir) if "chan" in folder]
+
+        for chan in self.chans:
+            chan_dir = os.path.join(self.hires_dir, chan)
+            self.mask_files = [png for png in os.listdir(chan_dir) if (png.endswith(".png")) and ("masks" in png)] # need to ensure only masks files
+            if len(self.mask_files) == 0:
+                logger.warning("No mask files found in {}".format(chan_dir))
+                return False
+
+            if self.verbose: self.logger.info("Found {} .png files".format(len(self.mask_files)))
+            section_names = [s.split(".")[0].split("_")[-3] for s in self.mask_files]
+            print(section_names)
+
+            if not hasattr(self, "rois"):
+                if not self.get_section_rois():
+                    self.logger.warning("No section ROIs available for {}".format(self.folder))
+                    return False
+
+            if self.rois == section_names:
+                if self.verbose: self.logger.info("ROIs from ROI file match mask files in {}".format(chan_dir))
+                return True
+            else:
+                logger.warning("ROIs from ROI file DO NOT MATCH mask files in {}".format(chan_dir))
+                return False
+                
+    def check_user_rois(self):
+        
+        self.logger.info("Checking whether user-defined ROI file exists for {}".format(self.folder))
+
+        if not os.path.exists(self.lowres_dir):
+            self.logger.warning("No lowres folder exists in {}".format(self.folder))
+            return False
+        
+        self.user_roi_files = [f for f in os.listdir(self.lowres_dir) if "ROIs.zip" in f]
+        if len(self.user_roi_files) > 0:
+            return True
+        else:
+            self.logger.warning("No User-defined ROI files in {}".format(self.lowres_dir))
+            return False
+        
+    def check_all(self):
+        if not check.check_rawdata(): return False
+        if not check.check_vsi_rois(): return False
+        if not check.check_lowres(): return False
+        if not check.check_hires(): return False
+        if not check.check_masks(): return False
+        if not check.check_user_rois(): return False
+        self.logger("All integrity checks passed for {}".format(self.folder))
+        return True
 
 if __name__ == "__main__":
     project_dir = "D:\\TestData\\fostrap\\FTIG\\FT108"
-    project_dir = "/mnt/d/TestData/fostrap/FTIG/FT106"
-    project_dir = "/data/FTIG/FT106"
+    project_dir = "/mnt/d/TestData/fostrap/FTIG/FT108"
+    # project_dir = "/data/FTIG/FT106"
 
     logger = setup_logger(project_dir)
 
-    rois = check_rawdata(project_dir, logger)
+    check = Check(project_dir, logger)
+    # check.set_verbose()
+    # print(check.check_rawdata())
+    # print(check.check_vsi_rois())
+    # # print(check.get_section_rois())
+    # print(check.check_lowres())
+    # print(check.check_hires())
+    # print(check.check_masks())
+    print(check.check_user_rois())
 
-    print(rois)
+    print(check.check_all())
+    
 
-    if rois != None:
-        check_lowres(project_dir, logger, rois=rois)
-        check_hires(project_dir, logger, rois=rois)
-        check_masks(project_dir, logger, rois=rois)
-    else:
-        check_lowres(project_dir, logger)
-        check_hires(project_dir, logger)
-        check_masks(project_dir, logger)
+    
+
+    # rois = check_rawdata(project_dir, logger)
+
+    # print(rois)
+
+    # if rois != None:
+    #     check_lowres(project_dir, logger, rois=rois)
+    #     check_hires(project_dir, logger, rois=rois)
+    #     check_masks(project_dir, logger, rois=rois)
+    # else:
+    #     check_lowres(project_dir, logger)
+    #     check_hires(project_dir, logger)
+    #     check_masks(project_dir, logger)
 
     
 
