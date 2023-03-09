@@ -163,27 +163,27 @@ for animal in args_dict["animals"]:
         else:
             print("Overwriting existing csv file for {}".format(animal))
     if not args_dict["skip_integrity_check"]:
-        rois = check_rawdata(os.path.join(folder, animal), logger)
-        if not check_masks(os.path.join(folder, animal), logger, rois=rois):
-            logger.warning("Integrity check not passed. Not analysing {}".format(animal))
-            continue
-        if not check_user_rois(os.path.join(folder, animal), logger):
+        check = Check(os.path.join(folder, animal), logger)
+        if not check.check_all():
             logger.warning("Integrity check not passed. Not analysing {}".format(animal))
             continue
     else:
-        print("Skipping integrity check... Could be issues with analysis.")
+        logger.warning("Skipping integrity check for {}. Could be issues with analysis.".format(animal))
     
     animals_to_process.append(animal)
 
 logger.info("Animals being processed are: {}".format(animals_to_process))
 
-pool_args = [(folder, animal) for animal in animals_to_process]
+if len(animals_to_process) > 0:
+    pool_args = [(folder, animal) for animal in animals_to_process]
 
-pool_size = cpu_count()
-with Pool(processes=pool_size) as pool:
-    list_of_pooled_dfs = pool.starmap(process_rois, pool_args)
+    pool_size = cpu_count()
+    with Pool(processes=pool_size) as pool:
+        list_of_pooled_dfs = pool.starmap(process_rois, pool_args)
 
-df_main = pd.concat(list_of_dfs+list_of_pooled_dfs)
+    df_main = pd.concat(list_of_dfs+list_of_pooled_dfs)
+else:
+    df_main = pd.concat(list_of_dfs)
 
 results_folder = os.path.join(folder, "results")
 if not os.path.exists(results_folder):
@@ -191,8 +191,4 @@ if not os.path.exists(results_folder):
 
 df_main.to_csv(os.path.join(results_folder, "df_user_counts.csv"))
 
-
 print(df_main.head())
-
-
-# also add verbose option to silence logging and reporting on cell counts
