@@ -9,6 +9,7 @@ from skimage.draw import polygon2mask
 from skimage.io import imread
 from skimage.measure import find_contours
 import pandas as pd
+from multiprocessing import Pool, cpu_count
 
 from helper_fx import *
 from check_integrity import *
@@ -87,6 +88,9 @@ def process_rois(folder, animal, rois=[], verbose=False):
     hirespath = os.path.join(folder, animal, "hires")
     lowrespath = os.path.join(folder, animal, "lowres")
     roipath = os.path.join(lowrespath, "{}_userdefined_ROIs.zip".format(animal))
+
+    for path in [hirespath, lowrespath, roipath]:
+        if not os.path.exists(path): return
     
     # load in roi file
     roidata = read_roi_zip(roipath)   
@@ -144,6 +148,8 @@ else:
 print(args_dict["animals"])
 
 list_of_dfs = []
+animals_to_process = []
+
 for animal in args_dict["animals"]:
     existing_csv_path = os.path.join(folder, animal, "lowres", "user_rois_{}.csv".format(animal))
 
@@ -159,17 +165,25 @@ for animal in args_dict["animals"]:
     if not args_dict["skip_integrity_check"]:
         rois = check_rawdata(os.path.join(folder, animal), logger)
         if not check_masks(os.path.join(folder, animal), logger, rois=rois):
-            print("Integrity check not passed. Not analysing {}".format(animal))
+            logger.warning("Integrity check not passed. Not analysing {}".format(animal))
+            continue
+        if not check_user_rois(os.path.join(folder, animal), logger):
+            logger.warning("Integrity check not passed. Not analysing {}".format(animal))
             continue
     else:
         print("Skipping integrity check... Could be issues with analysis.")
-        
-    try:
-        list_of_dfs.append(process_rois(folder, animal))
-    except FileNotFoundError:
-        print("Files not available for {}".format(animal))
+    
+    animals_to_process.append(animal)
 
-df_main = pd.concat(list_of_dfs)
+logger.info("Animals being processed are: {}".format(animals_to_process))
+
+pool_args = [(folder, animal) for animal in animals_to_process]
+
+pool_size = cpu_count()
+with Pool(processes=pool_size) as pool:
+    list_of_pooled_dfs = pool.starmap(process_rois, pool_args)
+
+df_main = pd.concat(list_of_dfs+list_of_pooled_dfs)
 
 results_folder = os.path.join(folder, "results")
 if not os.path.exists(results_folder):
@@ -177,25 +191,8 @@ if not os.path.exists(results_folder):
 
 df_main.to_csv(os.path.join(results_folder, "df_user_counts.csv"))
 
-# df_main = pd.read_csv(os.path.join(results_folder, "df_user_counts.csv"))
-
-# df_meta =  pd.read_csv(os.path.join(folder, "metafile_ftig.csv"))
-
-# df_meta.set_index("animal", inplace=True)
-
-# df_meta.drop(["folder", "slide1A", "slide1B", "slide1C"], axis=1, inplace=True)
-
-# df_main.join(df_meta, on="animal")
 
 print(df_main.head())
 
-# print(df_meta.head())
-
-# print(df_main.head())
-# df_main.to_csv(os.path.join(results_folder, "df_user_counts_with_groups.csv"))
-
-
-# For speeding up consider processing each animal in parallel using threading / pooling
-# see this thread https://stackoverflow.com/questions/19695249/load-just-part-of-an-image-in-python
 
 # also add verbose option to silence logging and reporting on cell counts
