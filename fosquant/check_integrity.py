@@ -113,14 +113,8 @@ class Check():
 
         if self.verbose: logger.info("Checking integrity of HIRES folder for {}".format(self.folder))
 
-        if not os.path.exists(self.hires_dir):
-            self.logger.warning("No hires folder exists in {}".format(self.folder))
-            return False
-        
-        self.chans = [folder for folder in os.listdir(self.hires_dir) if "chan" in folder]
-        if len(self.chans) == 0:
-            self.logger.warning("No channel folders found in {}".format(self.hires_dir))
-            return False
+        if not hasattr(self, "chans"):
+            if not self.get_chans(): return False
 
         for chan in self.chans:
             chan_dir = os.path.join(self.hires_dir, chan)
@@ -150,11 +144,8 @@ class Check():
 
         logger.info("Checking whether PNG masks exist for {}".format(self.folder))
 
-        if not os.path.exists(self.hires_dir):
-            logger.warning("No hires folder exists in {}".format(self.folder))
-            return False
-        
-        self.chans = [folder for folder in os.listdir(self.hires_dir) if "chan" in folder]
+        if not hasattr(self, "chans"):
+            if not self.get_chans(): return False
 
         for chan in self.chans:
             chan_dir = os.path.join(self.hires_dir, chan)
@@ -178,7 +169,21 @@ class Check():
             else:
                 logger.warning("ROIs from ROI file DO NOT MATCH mask files in {}".format(chan_dir))
                 return False
-                
+
+    def get_chans(self):
+        
+        if not os.path.exists(self.hires_dir):
+            logger.warning("No hires folder exists in {}".format(self.folder))
+            return False
+        
+        self.chans = [folder for folder in os.listdir(self.hires_dir) if "chan" in folder]
+
+        if len(self.chans) == 0:
+            self.logger.warning("No channel folders found in {}".format(self.hires_dir))
+            return False
+        
+        return True
+
     def check_user_rois(self):
         
         self.logger.info("Checking whether user-defined ROI file exists for {}".format(self.folder))
@@ -217,33 +222,11 @@ if __name__ == "__main__":
     # print(check.check_vsi_rois())
     # # print(check.get_section_rois())
     # print(check.check_lowres())
-    # print(check.check_hires())
+    print(check.check_hires())
     # print(check.check_masks())
-    print(check.check_user_rois())
+    # print(check.check_user_rois())
 
-    print(check.check_all())
+    # print(check.check_all())
     
 
     
-
-    # rois = check_rawdata(project_dir, logger)
-
-    # print(rois)
-
-    # if rois != None:
-    #     check_lowres(project_dir, logger, rois=rois)
-    #     check_hires(project_dir, logger, rois=rois)
-    #     check_masks(project_dir, logger, rois=rois)
-    # else:
-    #     check_lowres(project_dir, logger)
-    #     check_hires(project_dir, logger)
-    #     check_masks(project_dir, logger)
-
-    
-
-
-
-
-
-
-## 
