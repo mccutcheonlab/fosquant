@@ -8,7 +8,7 @@ import numpy as np
 from time import perf_counter
 
 from helper_fx import *
-from check_integrity import check_hires
+from check_integrity import Check
 
 # get and parse options
 def parse_args(argv, config_data):
@@ -80,8 +80,8 @@ for animal in args_dict["animals"]:
     for chan in channel_strings:
         print(chan)
         if args_dict["skip_integrity_check"] == False:
-            rois = get_rois(os.path.join(folder, animal, "rawdata"))
-            if check_hires(os.path.join(folder, animal), logger, rois=rois):
+            check = Check(os.path.join(folder, animal), logger)
+            if check.check_hires():
                 logger.info("Integrity check of HIRES folder is passed. Continuing with cellpose")
             else:
                 print("failed")
