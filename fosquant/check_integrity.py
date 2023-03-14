@@ -147,7 +147,7 @@ class Check():
 
     def check_masks(self):
 
-        logger.info("Checking whether PNG masks exist for {}".format(self.folder))
+        self.logger.info("Checking whether PNG masks exist for {}".format(self.folder))
 
         if not hasattr(self, "chans"):
             if not self.get_chans(): return False
