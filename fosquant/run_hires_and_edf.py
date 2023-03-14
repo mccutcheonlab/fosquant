@@ -215,13 +215,6 @@ for animal in args_dict["animals"]:
 
         rois = get_scaled_roi(roipath)
 
-        # keys = ["_s00{}".format(i) for i in range(8,15)]
-        
-        # original_keys = list(rois.keys())
-        # for key in original_keys:
-        #     if key not in keys:
-        #         rois.pop(key)
-
         for roi, dims in rois.items():
             roi_tic = perf_counter()
             for chan in channel_strings:
@@ -244,8 +237,7 @@ for animal in args_dict["animals"]:
 
                 imsave(os.path.join(chan_path, "{}{}.png".format(stub,roi)), result)
                 logger.info("Saving 16-bit .png to {}".format(chan_path))
-                # copy probably quicker
-                # imsave(os.path.join(folder, "hires", "chan{}".format(chan), "{}{}.png".format(stub,roi)), result)
+
                 f = "{}{}.png".format(stub,roi)
                 subprocess.call("cp {} {}".format(os.path.join(chan_path, f), os.path.join(folder, animal, "hires", "chan{}".format(chan))), shell=True)
                 
@@ -256,15 +248,6 @@ for animal in args_dict["animals"]:
         logger.info("Processed {} in {:0.4f} sec".format(vsi, toc-tic))
     
     javabridge.kill_vm()
-
-    # target_dir = os.path.join(folder, animal, "hires")
-    # if not os.path.exists(target_dir):
-    #     os.makedirs(target_dir)
-        
-    # for chan in channel_strings:
-    #     chan_path = os.path.join(os.getcwd(), "chan{}".format(chan))
-    #     for f in [f for f in os.listdir(chan_path) if f.endswith(".png")]:
-    #         subprocess.call("cp {} {}".format(os.path.join(chan_path, f), os.path.join(target_dir, "chan{}".format(chan)), shell=True))
 
     if args_dict["delete_intermediates"]:
         subprocess.call("rm /data_temp/{} -r".format(animal), shell=True)
