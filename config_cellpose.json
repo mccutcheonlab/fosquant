@@ -1,8 +1,8 @@
 {
-    "project_dir": "/mnt/d/TestData/fostrap/FTIG/",
+    "project_dir": "/data/FTIG/",
     "prefix": "FT",
-    "model_chan1": "",
-    "model_chan2": "",
+    "model_chan1": "CP_fos_20230303",
+    "model_chan2": "CP_trap_20230303",
     "diameter_chan1": 7.2,
     "diameter_chan2": 9.82
 }
