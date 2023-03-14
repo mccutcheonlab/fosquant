@@ -17,7 +17,7 @@ class Check():
 
     def check_rawdata(self):
 
-        if self.verbose: logger.info("Checking integrity of RAWDATA folder...")
+        if self.verbose: self.logger.info("Checking integrity of RAWDATA folder...")
 
         if not os.path.exists(self.rawdata_dir):
             self.logger.warning("No rawdata folder exists in {}".format(self.folder))
@@ -88,7 +88,7 @@ class Check():
 
     def check_lowres(self):
 
-        if self.verbose: logger.info("Checking integrity of LOWRES folder...")
+        if self.verbose: self.logger.info("Checking integrity of LOWRES folder...")
 
         if not os.path.exists(self.lowres_dir):
             self.logger.warning("No lowres folder exists in {}".format(project_dir))
@@ -116,7 +116,7 @@ class Check():
 
     def check_hires(self):
 
-        if self.verbose: logger.info("Checking integrity of HIRES folder for {}".format(self.folder))
+        if self.verbose: self.logger.info("Checking integrity of HIRES folder for {}".format(self.folder))
 
         if not hasattr(self, "chans"):
             if not self.get_chans(): return False
@@ -142,7 +142,7 @@ class Check():
                 if self.verbose: self.logger.info("ROIs from ROI file match hires sections in {}".format(chan_dir))
                 return True
             else:
-                logger.warning("ROIs from ROI file DO NOT MATCH hires sections in {}".format(chan_dir))
+                self.logger.warning("ROIs from ROI file DO NOT MATCH hires sections in {}".format(chan_dir))
                 return False
 
     def check_masks(self):
@@ -156,7 +156,7 @@ class Check():
             chan_dir = os.path.join(self.hires_dir, chan)
             self.mask_files = [png for png in os.listdir(chan_dir) if (png.endswith(".png")) and ("masks" in png)] # need to ensure only masks files
             if len(self.mask_files) == 0:
-                logger.warning("No mask files found in {}".format(chan_dir))
+                self.logger.warning("No mask files found in {}".format(chan_dir))
                 return False
 
             if self.verbose: self.logger.info("Found {} .png files".format(len(self.mask_files)))
@@ -172,13 +172,13 @@ class Check():
                 if self.verbose: self.logger.info("ROIs from ROI file match mask files in {}".format(chan_dir))
                 return True
             else:
-                logger.warning("ROIs from ROI file DO NOT MATCH mask files in {}".format(chan_dir))
+                self.logger.warning("ROIs from ROI file DO NOT MATCH mask files in {}".format(chan_dir))
                 return False
 
     def get_chans(self):
         
         if not os.path.exists(self.hires_dir):
-            logger.warning("No hires folder exists in {}".format(self.folder))
+            self.logger.warning("No hires folder exists in {}".format(self.folder))
             return False
         
         self.chans = [folder for folder in os.listdir(self.hires_dir) if "chan" in folder]
