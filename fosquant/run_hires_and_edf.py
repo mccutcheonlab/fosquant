@@ -14,6 +14,7 @@ from skimage.io import imread, imsave
 from skimage.util import img_as_uint
 
 from helper_fx import *
+from check_integrity import Check
 
 import javabridge
 import bioformats as bf
@@ -173,6 +174,11 @@ for animal in args_dict["animals"]:
 
     vsi_files = [vsi for vsi in os.listdir(".") if vsi.endswith(".vsi")]
     logger.info("Found {} .vsi files".format(len(vsi_files)))
+
+    check = Check(os.path.join(folder, animal), logger)
+    if check.check_hires():
+        logger.info("Hires images detected for {}. Continuing to next".format(animal))
+        continue
 
     if len(vsi_files) > 0:
         temp_folder = "/data_temp/{}".format(animal)

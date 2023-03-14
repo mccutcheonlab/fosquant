@@ -2,6 +2,8 @@ import sys
 import os
 import logging
 
+import numpy as np
+
 from datetime import datetime
 
 from read_roi import read_roi_zip
@@ -91,10 +93,17 @@ def get_scaled_roi(roipath, series_hires=8, series_lowres=12):
     rois = {}
     for item in roidata:
         s = roidata[item]
-        x, y, w, h = s["left"], s["top"], s["width"], s["height"]
-        rois[item] = tuple([dim*scale_factor for dim in (x,y,w,h)])
-        s = roidata[item]
-        x, y, w, h = s["left"], s["top"], s["width"], s["height"]
+        print(s)
+        print(type(s))
+        try:
+            x, y, w, h = s["left"], s["top"], s["width"], s["height"]
+        except KeyError:
+            print("XYWH not found. Calculating from coordinates.")
+            x = np.min(s["x"])
+            y = np.min(s["y"])
+            w = np.max(s["x"]) - np.min(s["x"])
+            h = np.max(s["y"]) - np.min(s["y"])
+
         rois[item] = tuple([dim*scale_factor for dim in (x,y,w,h)])
 
     return rois
