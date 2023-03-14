@@ -221,9 +221,12 @@ for animal in args_dict["animals"]:
                 chan_path = os.path.join(os.getcwd(), "hires", "chan{}".format(chan))
                 logger.info("looking for {}".format(os.path.join(chan_path, stub + roi + ".png")))
                 if os.path.exists(os.path.join(chan_path, stub + roi + ".png")):
+                    print("Should skip here...")
                     if args_dict["overwrite"] == False:
                         logger.info("PNG file already exists for {}, channel {}".format(stub, chan))
                         continue
+                else:
+                    print("File not detected")
                 im = get_section_from_vsi(vsipath, dims, chan)
                 try:
                     im = get_section_from_vsi(vsipath, dims, chan)
