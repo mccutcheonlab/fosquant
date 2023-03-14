@@ -1,6 +1,7 @@
 import sys
 import getopt
 import os
+import shutil
 import subprocess
 import json
 
@@ -15,7 +16,7 @@ sys.path.append("~/Github/fosquant/")
 # get and parse options
 def parse_args(argv, config_data):
     args_dict = {}
-    args_dict["project_dir"] = config_data["path_to_project_dir"]
+    args_dict["project_dir"] = config_data["project_dir"]
     args_dict["metafile"] = False
     args_dict["get_data"] = False
     args_dict["overwrite"] = False
@@ -115,12 +116,14 @@ for animal in args_dict["animals"]:
             subprocess.call("{} cp {} {}".format(path_to_azcopy, vsi_file_remote, vsi_file_local), shell=True)
             subprocess.call("{} cp {} {} --recursive=true".format(path_to_azcopy, vsi_folder_remote, animal_raw_path), shell=True)
             os.chdir(animal_raw_path)
+            # subprocess.call("mv {} {}".format(os.path.join(animal_raw_path, vsi_folder_remote_stub),
+            #                                   os.path.join(animal_raw_path, vsi_folder_local)), shell=True)
+            if os.path.exists(os.path.join(animal_raw_path, vsi_folder_local)):
+                shutil.rmtree(vsi_folder_local)
+
             os.rename(vsi_folder_remote_stub, vsi_folder_local)
             
+            #need to fix this line
             if not (os.path.exists(vsi_file_local)) or (os.path.exists(vsi_folder_local)):
                 logger.debug("Failed to get file using azcopy. Check azcopy log.")
 
-
-    # get names of slide paths from df
-    # loop through if not none and then download
-    # check if already exist and overwrite option

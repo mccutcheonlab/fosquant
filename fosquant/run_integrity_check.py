@@ -11,9 +11,10 @@ from check_integrity import *
 def parse_args(argv, config_data):
     args_dict = config_data
     args_dict["animals"] = ""
+    args_dict["verbose"] = False
 
     try:
-        opts, args = getopt.getopt(argv[1:], "a:f:")
+        opts, args = getopt.getopt(argv[1:], "a:v")
     except:
         print(arg_help)
         sys.exit(2)
@@ -24,6 +25,8 @@ def parse_args(argv, config_data):
             sys.exit(2)
         elif opt in ("-a", "--animals"):
             args_dict["animals"] = arg
+        elif opt in ("-v", "--verbose"):
+            args_dict["verbose"] = arg
         
     print("Arguments parsed successfully")
     
@@ -53,14 +56,27 @@ for animal in args_dict["animals"]:
         logger.warning("No folder exists in priject directory for {}".format(animal))
         continue
 
-    rois = check_rawdata(animal_dir, logger)
+    check = Check(animal_dir, logger)
+    if args_dict["verbose"]:
+        check.set_verbose()
 
-    if rois != None:
-        check_lowres(animal_dir, logger, rois=rois)
-        check_hires(animal_dir, logger, rois=rois)
-    else:
-        check_lowres(animal_dir, logger)
-        check_hires(animal_dir, logger)
+    # print(check.check_rawdata())
+    # print(check.check_vsi_rois())
+    # # print(check.get_section_rois())
+    # print(check.check_lowres())
+    # print(check.check_hires())
+    # print(check.check_masks())
+    # print(check.check_user_rois())
+
+    print(check.check_all())
+
+
+    # if rois != None:
+    #     check_lowres(animal_dir, logger, rois=rois)
+    #     check_hires(animal_dir, logger, rois=rois)
+    # else:
+    #     check_lowres(animal_dir, logger)
+    #     check_hires(animal_dir, logger)
 
 toc = perf_counter()
 
