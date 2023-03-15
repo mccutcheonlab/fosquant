@@ -83,7 +83,7 @@ for animal in args_dict["animals"]:
         if args_dict["skip_integrity_check"] == False:
             check = Check(os.path.join(folder, animal), logger)
             if check.check_hires():
-                logger.info("Integrity check of HIRES folder is passed. Continuing with cellpose")
+                logger.info("Integrity check of HIRES folder is passed for {}. Continuing with cellpose".format(animal))
             else:
                 print("failed")
                 continue
