@@ -136,6 +136,7 @@ class Check():
                     self.logger.warning("No section ROIs available for {}".format(self.folder))
                     return False
 
+            #TODO make separate function to check rois to section names and remove print statements
             print(self.rois)
             print(section_names)
             if self.rois.sort() == section_names.sort():

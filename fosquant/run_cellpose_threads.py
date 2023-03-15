@@ -63,6 +63,7 @@ if len(args_dict["channels"]) < 1:
     print("No channels provided for analysis. Exiting.")
     sys.exit(2)
 
+#TODO Add explicit references to the animal being analysed so visible in the terminal at run-time
 for animal in args_dict["animals"]:
     try:
         os.chdir(os.path.join(folder, animal))
