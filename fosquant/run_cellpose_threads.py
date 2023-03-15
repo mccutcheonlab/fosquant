@@ -17,9 +17,10 @@ def parse_args(argv, config_data):
     args_dict["channels"] = ""
     args_dict["overwrite"] = False
     args_dict["skip_integrity_check"] = False
+    args_dict["unanalyzed_files_only"] = False
 
     try:
-        opts, args = getopt.getopt(argv[1:], "a:c:r:oi")
+        opts, args = getopt.getopt(argv[1:], "a:c:r:oiu")
     except:
         print(arg_help)
         sys.exit(2)
@@ -35,7 +36,9 @@ def parse_args(argv, config_data):
         elif opt in ("-o", "--overwrite"):
             args_dict["overwrite"] = True
         elif opt in ("-i", "--check_integrity"):
-            args_dict["skip_integrity_check"] = True 
+            args_dict["skip_integrity_check"] = True
+        elif opt in ("-u", "--unanalyzed_files_only"):
+            args_dict["unanalyzed_files_only"] = True
 
     print("Arguments parsed successfully")
     
@@ -93,12 +96,21 @@ for animal in args_dict["animals"]:
         diameter = args_dict["diameter_chan{}".format(chan)]
 
         mask_files = [f for f in os.listdir(chan_path) if "cp_masks" in f]
-        if len(mask_files) > 0:
+        if (len(mask_files) > 0) and (not args_dict["unanalyzed_files_only"]):
             logger.info("Mask files detected in output folder. Exiting.")
             continue
+        
+        if args_dict["unanalyzed_files_only"]:
+            pngs = [f for f in os.listdir(chan_path) if (f.endswith(".png")) and ("_cp_masks" not in f)]
+            orphan_pngs = [png for png in pngs if png.split(".")[0] + "_cp_masks.png" not in os.listdir(chan_path)]
 
-        cellpose_template_string = "python -m cellpose --dir {} --pretrained_model {} --chan 0 --chan2 0 --diameter {} --verbose --use_gpu --save_png --fast_mode --no_npy --batch_size 8"
-        subprocess.call(cellpose_template_string.format(chan_path, model, diameter), shell=True)
+            for png in orphan_pngs:
+                cellpose_template_string = "python -m cellpose --image_path {} --pretrained_model {} --chan 0 --chan2 0 --diameter {} --verbose --use_gpu --save_png --fast_mode --no_npy --batch_size 8"
+                subprocess.call(cellpose_template_string.format(os.path.join(chan_path, png), model, diameter), shell=True)
+
+        else:
+            cellpose_template_string = "python -m cellpose --dir {} --pretrained_model {} --chan 0 --chan2 0 --diameter {} --verbose --use_gpu --save_png --fast_mode --no_npy --batch_size 8"
+            subprocess.call(cellpose_template_string.format(chan_path, model, diameter), shell=True)
         # print(cellpose_template_string.format(chan_path, model, diameter))
 
         # p = []
