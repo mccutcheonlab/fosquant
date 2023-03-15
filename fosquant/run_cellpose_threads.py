@@ -105,21 +105,15 @@ for animal in args_dict["animals"]:
             orphan_pngs = [png for png in pngs if png.split(".")[0] + "_cp_masks.png" not in os.listdir(chan_path)]
 
             for png in orphan_pngs:
+                logger.info("Running cellpose on channel {} in {} for {}".format(chan, png, animal))
                 cellpose_template_string = "python -m cellpose --image_path {} --pretrained_model {} --chan 0 --chan2 0 --diameter {} --verbose --use_gpu --save_png --fast_mode --no_npy --batch_size 8"
                 subprocess.call(cellpose_template_string.format(os.path.join(chan_path, png), model, diameter), shell=True)
 
         else:
+            logger.info("Running cellpose on all files in {}".format(chan_path))
             cellpose_template_string = "python -m cellpose --dir {} --pretrained_model {} --chan 0 --chan2 0 --diameter {} --verbose --use_gpu --save_png --fast_mode --no_npy --batch_size 8"
             subprocess.call(cellpose_template_string.format(chan_path, model, diameter), shell=True)
-        # print(cellpose_template_string.format(chan_path, model, diameter))
 
-        # p = []
-        # p.append("cellpose ")
-
-        # basically assemble big list of subprocess commands for all animals/channels and then pass list to separate function for threading
-        
-
-# python -m cellpose --dir . --pretrained_model cyto --chan 1 --chan2 0 --diameter 10 --verbose --use_gpu --save_png --fast_mode
 
 # https://stackoverflow.com/questions/2629680/deciding-among-subprocess-multiprocessing-and-thread-in-python
 # https://stackoverflow.com/questions/30686295/how-do-i-run-multiple-subprocesses-in-parallel-and-wait-for-them-to-finish-in-py
