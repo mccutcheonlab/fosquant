@@ -103,7 +103,7 @@ class Check():
 
         if hasattr(self, "rois"):
             section_names = [s.split(".")[0].split("_")[-1] for s in self.jpg_files]
-            if self.rois == section_names:
+            if self.rois.sort() == section_names.sort():
                 if self.verbose: self.logger.info("All ROIs detected match lowres sections")
             else:
                 self.logger.warning("ROIs from ROI file DO NOT MATCH lowres sections")
@@ -138,7 +138,7 @@ class Check():
 
             print(self.rois)
             print(section_names)
-            if self.rois == section_names:
+            if self.rois.sort() == section_names.sort():
                 if self.verbose: self.logger.info("ROIs from ROI file match hires sections in {}".format(chan_dir))
                 return True
             else:
@@ -168,7 +168,7 @@ class Check():
                     self.logger.warning("No section ROIs available for {}".format(self.folder))
                     return False
 
-            if self.rois == section_names:
+            if self.rois.sort() == section_names.sort():
                 if self.verbose: self.logger.info("ROIs from ROI file match mask files in {}".format(chan_dir))
                 return True
             else:
