@@ -3,6 +3,6 @@
     "prefix": "FT",
     "model_chan1": "CP_fos_20230303",
     "model_chan2": "CP_trap_20230303",
-    "diameter_chan1": 7.2,
+    "diameter_chan1": 6.824,
     "diameter_chan2": 9.82
 }
