@@ -34,11 +34,12 @@ def parse_args(argv, config_data):
     args_dict = config_data
     args_dict["animals"] = ""
     args_dict["channels"] = ""
+    args_dict["sections"] = ""
     args_dict["overwrite"] = False
     args_dict["delete_intermediates"] = False
 
     try:
-        opts, args = getopt.getopt(argv[1:], "a:c:r:ox")
+        opts, args = getopt.getopt(argv[1:], "a:c:s:r:ox")
     except:
         print(arg_help)
         sys.exit(2)
@@ -53,6 +54,8 @@ def parse_args(argv, config_data):
             args_dict["rotate"] = arg
         elif opt in ("-c", "--channels"):
             args_dict["channels"] = arg
+        elif opt in ("-s", "--sections"):
+            args_dict["sections"] = arg
         elif opt in ("-o", "--overwrite"):
             args_dict["overwrite"] = True 
         elif opt in ("-x", "--delete-intermediates"):
@@ -177,7 +180,7 @@ for animal in args_dict["animals"]:
 
     check = Check(os.path.join(folder, animal), logger)
     if check.check_hires():
-        logger.info("Hires images detected for {}. Continuing to next".format(animal))
+        logger.info("All hires images detected for {}. Continuing to next".format(animal))
         continue
 
     if len(vsi_files) > 0:
@@ -195,10 +198,6 @@ for animal in args_dict["animals"]:
         chan_path = os.path.join(".", "hires", "chan{}".format(chan))
         if not os.path.isdir(chan_path):
             os.makedirs(chan_path)
-        # else:
-        #     if not check_existing_files(chan_path, args_dict["overwrite"]):
-        #         print("exiting")
-
 
     for vsi in vsi_files:
         print(vsi)

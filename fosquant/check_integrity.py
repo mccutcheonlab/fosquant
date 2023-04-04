@@ -1,4 +1,5 @@
 import os
+import collections
 from read_roi import read_roi_zip
 from helper_fx import setup_logger, flatten_list
 
@@ -105,6 +106,7 @@ class Check():
             section_names = [s.split(".")[0].split("_")[-1] for s in self.jpg_files]
             if self.rois.sort() == section_names.sort():
                 if self.verbose: self.logger.info("All ROIs detected match lowres sections")
+                return True
             else:
                 self.logger.warning("ROIs from ROI file DO NOT MATCH lowres sections")
                 return False
@@ -137,10 +139,10 @@ class Check():
                     return False
 
             #TODO make separate function to check rois to section names and remove print statements
-            print(self.rois)
-            print(section_names)
-            if self.rois.sort() == section_names.sort():
-                if self.verbose: self.logger.info("ROIs from ROI file match hires sections in {}".format(chan_dir))
+
+            if collections.Counter(self.rois) == collections.Counter(section_names):
+                if self.verbose:
+                    self.logger.info("ROIs from ROI file match hires sections in {}".format(chan_dir))
                 return True
             else:
                 self.logger.warning("ROIs from ROI file DO NOT MATCH hires sections in {}".format(chan_dir))
@@ -212,7 +214,7 @@ class Check():
         if not self.check_hires(): return False
         if not self.check_masks(): return False
         if not self.check_user_rois(): return False
-        self.logger("All integrity checks passed for {}".format(self.folder))
+        self.logger.info("All integrity checks passed for {}".format(self.folder))
         return True
 
 if __name__ == "__main__":

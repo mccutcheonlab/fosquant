@@ -20,9 +20,10 @@ def parse_args(argv, config_data):
     args_dict["skip_integrity_check"] = False
     args_dict["verbose"] = False
     args_dict["overwrite"] = False
+    args_dict["threaded"] = False
 
     try:
-        opts, args = getopt.getopt(argv[1:], "a:ivo")
+        opts, args = getopt.getopt(argv[1:], "a:ivot")
     except:
         print(arg_help)
         sys.exit(2)
@@ -39,6 +40,8 @@ def parse_args(argv, config_data):
             args_dict["verbose"] = True
         elif opt in ("-o", "--overwrite"):
             args_dict["overwrite"] = True 
+        elif opt in ("-t", "--threaded"):
+            args_dict["threaded"] = True 
 
     print("Arguments parsed successfully")
     
@@ -175,11 +178,16 @@ for animal in args_dict["animals"]:
 logger.info("Animals being processed are: {}".format(animals_to_process))
 
 if len(animals_to_process) > 0:
-    pool_args = [(folder, animal) for animal in animals_to_process]
+    if args_dict["threaded"]:
+        pool_args = [(folder, animal) for animal in animals_to_process]
 
-    pool_size = cpu_count()
-    with Pool(processes=pool_size) as pool:
-        list_of_pooled_dfs = pool.starmap(process_rois, pool_args)
+        pool_size = cpu_count()
+        with Pool(processes=pool_size) as pool:
+            list_of_pooled_dfs = pool.starmap(process_rois, pool_args)
+    else:
+        list_of_pooled_dfs = []
+        for animal in animals_to_process:
+             list_of_pooled_dfs.append(process_rois(folder, animal, verbose=args_dict["verbose"]))
 
     df_main = pd.concat(list_of_dfs+list_of_pooled_dfs)
 else:
