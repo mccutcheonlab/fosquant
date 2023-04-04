@@ -139,14 +139,14 @@ class Check():
                     return False
 
             #TODO make separate function to check rois to section names and remove print statements
-
             if collections.Counter(self.rois) == collections.Counter(section_names):
                 if self.verbose:
                     self.logger.info("ROIs from ROI file match hires sections in {}".format(chan_dir))
-                return True
             else:
                 self.logger.warning("ROIs from ROI file DO NOT MATCH hires sections in {}".format(chan_dir))
                 return False
+        
+        return True
 
     def check_masks(self):
 
@@ -173,10 +173,11 @@ class Check():
 
             if collections.Counter(self.rois) == collections.Counter(section_names):
                 if self.verbose: self.logger.info("ROIs from ROI file match mask files in {}".format(chan_dir))
-                return True
             else:
                 self.logger.warning("ROIs from ROI file DO NOT MATCH mask files in {}".format(chan_dir))
                 return False
+            
+        return True
 
     def get_chans(self):
         
