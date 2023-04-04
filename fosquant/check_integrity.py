@@ -171,7 +171,7 @@ class Check():
                     self.logger.warning("No section ROIs available for {}".format(self.folder))
                     return False
 
-            if self.rois.sort() == section_names.sort():
+            if collections.Counter(self.rois) == collections.Counter(section_names):
                 if self.verbose: self.logger.info("ROIs from ROI file match mask files in {}".format(chan_dir))
                 return True
             else:

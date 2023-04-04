@@ -65,7 +65,7 @@ for animal in args_dict["animals"]:
     # print(check.get_section_rois())
     # print(check.check_lowres())
     # print(check.check_hires(), animal)
-    # print(check.check_masks())
+    print(check.check_masks())
     # print(check.check_user_rois())
 
     print(check.check_all())

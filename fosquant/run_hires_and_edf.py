@@ -97,6 +97,8 @@ def get_section_from_vsi(path, dims, chan, series_hires=8):
 
     dims = check_bounds(path, dims, series_hires)
 
+    print("dims are", dims)
+
     with bf.ImageReader(path) as reader:
         planes = []
         for z in range(3):
@@ -125,7 +127,7 @@ def check_bounds(path, dims, series):
     if Y < (dims[1] + dims[3]):
         dims[1] = Y - dims[3]
 
-    return tuple(dims)
+    return tuple([int(dim) for dim in dims])
 
 def edf(image):
 
