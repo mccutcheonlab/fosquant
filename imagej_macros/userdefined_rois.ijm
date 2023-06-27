@@ -2,7 +2,7 @@
 macro "Add and rename ROI [a]" {
 
 	// get region
-	regionOptions = newArray("nacshell", "naccore", "piriform", "caudate_put", "pv_thal", "pv_hypo", "arcuate", "lat_hypo", "parabrac", "raphe");
+	regionOptions = newArray("motorctx", "sensoryctx", "insulactx", "nacshell", "naccore", "piriform", "caudate_put", "pv_thal", "pv_hypo", "arcuate", "lat_hypo", "parabrac", "raphe");
 	Dialog.create("Choose region");
 	Dialog.addChoice("Region", regionOptions);
 	Dialog.show();
@@ -57,7 +57,8 @@ macro "Save all ROIs [S]" {
 			print("Saved file as " + roiPath);
 		}
 		else {
-			print("Not a valid option. Exiting macro without saving.");
+			print("Not a valid option. Exiting macro without saving.")
+;
 		}
 	}
 	else {
