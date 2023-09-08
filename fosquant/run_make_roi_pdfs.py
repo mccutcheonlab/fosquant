@@ -77,6 +77,7 @@ def make_figure(im, roidata):
     
     img = io.BytesIO()
     f.savefig(img, format='png')
+    plt.close(f)
     
     img.seek(0)
     f_base64 = base64.b64encode(img.getvalue()).decode()
@@ -97,7 +98,7 @@ def make_section_html(section, figure):
 args_dict = parse_args(sys.argv)
 args_dict["prefix"] = "FT"
 
-PROJECT_DIR = Path("C:/Users/jmc010/Data/fostrap/")
+PROJECT_DIR = Path("/data/FTIG")
 ROI_FILE_SUFFIX = "_cleaned"
 
 print(args_dict)

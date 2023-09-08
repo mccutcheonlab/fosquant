@@ -32,7 +32,7 @@ def parse_args(argv):
 args_dict = parse_args(sys.argv)
 args_dict["prefix"] = "FT"
 
-PROJECT_DIR = Path("C:/Users/jmc010/Data/fostrap/")
+PROJECT_DIR = Path("/data/FTIG")
 ROI_FILE_SUFFIX = "_cleaned"
 
 print(args_dict)
