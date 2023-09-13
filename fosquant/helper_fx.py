@@ -29,7 +29,7 @@ def setup_logger(projectdir):
         os.mkdir(logdir)
 
     ## setting up logger
-    logfile = os.path.join(logdir, "{}.log".format(datetime.now().strftime('%Y-%m-%d_%H:%M:%S')))
+    logfile = os.path.join(logdir, "{}.log".format(datetime.now().strftime('%Y-%m-%d_%H-%M-%S')))
 
     logger = logging.getLogger(logfile)
     logger.setLevel(level=logging.DEBUG)
