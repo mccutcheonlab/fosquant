@@ -7,7 +7,7 @@ from pathlib import Path
 from read_roi import read_roi_zip
 import numpy as np
 from skimage.draw import polygon2mask
-from skimage.io import imread
+from skimage.io import imread, imshow, imsave
 from skimage.measure import find_contours
 import pandas as pd
 from multiprocessing import Pool, cpu_count
@@ -22,9 +22,12 @@ def parse_args(argv, config_data):
     args_dict["verbose"] = False
     args_dict["overwrite"] = False
     args_dict["threaded"] = False
+    args_dict["fos_threshold"] = 0
+    args_dict["region"] = ""
+    args_dict["dummy_run"] = False
 
     try:
-        opts, args = getopt.getopt(argv[1:], "a:ivot")
+        opts, args = getopt.getopt(argv[1:], "a:ivotf:r:d")
     except:
         print(arg_help)
         sys.exit(2)
@@ -43,7 +46,13 @@ def parse_args(argv, config_data):
             args_dict["overwrite"] = True 
         elif opt in ("-t", "--threaded"):
             args_dict["threaded"] = True 
-
+        elif opt in ("-f", "fos_threshold"):
+            args_dict["fos_threshold"] = arg
+        elif opt in ("-r", "region"):
+            args_dict["region"] = arg
+        elif opt in ("-d", "dummy_run"):
+            args_dict["dummy_run"] = True
+    
     print("Arguments parsed successfully")
     
     return args_dict
@@ -78,8 +87,13 @@ def get_roi_coords(roi, scale_factor):
     
     return xy
 
-def count_neurons(im, roi_coords, verbose=False):
-    
+def count_neurons(im, roi_coords, verbose=False, threshold=0):
+
+    # first get rid of cellrois that are outside roi to be counted, e.g. multiply by zero
+
+    # if threshold > 0:
+
+
     mask = polygon2mask(im.shape, roi_coords)
     masked_image = im * mask
     
@@ -102,7 +116,33 @@ def get_coloc(im1, im2, area_threshold = 8, verbose=False):
     
     return ncoloc
 
+def get_clipped_im(im_fos, im_trap, roi, scale_factor):
+
+    roi_min_x, roi_max_x = np.min(roi["x"])*scale_factor, np.max(roi["x"])*scale_factor
+    roi_min_y, roi_max_y = np.min(roi["y"])*scale_factor, np.max(roi["y"])*scale_factor
+
+    im_fos_out = im_fos[roi_min_y:roi_max_y, roi_min_x:roi_max_x]
+    im_trap_out = im_trap[roi_min_y:roi_max_y, roi_min_x:roi_max_x]
+
+    x_rescaled = [x*scale_factor - roi_min_x for x in roi["x"]]
+    y_rescaled = [y*scale_factor - roi_min_y for y in roi["y"]]
+    
+    print(roi_min_x)
+    print(roi["x"])
+    print(x_rescaled)
+
+    xy_rescaled = [(x,y) for x,y in zip(x_rescaled, y_rescaled)]
+
+    return im_fos_out, im_trap_out, xy_rescaled
+
+def normalize_image(image):
+    
+    normed_im = image/np.max(image) * 255
+    
+    return np.clip(normed_im, 0, 255)
+
 def process_rois(folder, animal, rois=[], verbose=False):
+
     # set folder names
     hirespath = folder / animal / "hires"
     lowrespath = folder / animal / "lowres"
@@ -125,24 +165,54 @@ def process_rois(folder, animal, rois=[], verbose=False):
         im_trap = imread(hirespath / "chan2" / png)
         im_low = imread(lowrespath / lowres)
 
+        if args_dict["fos_threshold"] > 0:
+            print("reading in...")
+            # read in png of raw fos signal for calculating mean
+
         scale_factor = int(im_fos.shape[0] / im_low.shape[0])
 
         for roi in roidata:
             roi_section, region = parse_roi_name(roi)
+            if args_dict["region"] not in region:
+                continue
             if roi_section != section:
                 continue
             print(animal, section, region)
 
             xy = get_roi_coords(roidata[roi], scale_factor)
 
-            nfos, masked_fos = count_neurons(im_fos, xy, verbose=verbose)
+            im_fos_rescaled, im_trap_rescaled, xy_rescaled = get_clipped_im(im_fos, im_trap, roidata[roi], scale_factor=scale_factor)
+
+            imsave(".//testim.png", im_trap_rescaled)
+            print(type(xy), len(xy))
+            print(type(xy_rescaled), len(xy_rescaled))
+
+            # clip all images to roi, keep originals
+            # potentially keep the same size but just turn areas outside rois to zero OR
+            # clip to roi boundaries and update xy coords
+
+            # deal with fos thresholds... only keep fos cells above threshold
+
+            # save images during the process for checking
+            # make fig with roi over fullsize fig, roi zoomed in on fos on trap, on theshold fos, colocalized, print number of neurons...
+
+
+
+            # if args_dict["fos_threshold"] > 0:
+            #     nfos, masked_fos = count_neurons(im_fos, xy, verbose=verbose, threshold=args_dict["fos_threshold"])
+            # else:
+            #     nfos, masked_fos = count_neurons(im_fos, xy, verbose=verbose)
+
             ntrap, masked_trap = count_neurons(im_trap, xy, verbose=verbose)
-            ncoloc = get_coloc(masked_fos, masked_trap, verbose=verbose)
+            ntrap2, _ = count_neurons(im_trap_rescaled, xy_rescaled, verbose=verbose)
 
-            area = np.sum(polygon2mask(im_fos.shape, xy))
+            print(ntrap, ntrap2)
+            # ncoloc = get_coloc(masked_fos, masked_trap, verbose=verbose)
 
-            section_data = {"animal": [animal], "section": [section], "region": [region], "area": [area], "nfos": [nfos], "ntrap": [ntrap], "ncoloc": [ncoloc]}
-            features.append(pd.DataFrame(section_data))
+            # area = np.sum(polygon2mask(im_fos.shape, xy))
+
+            # section_data = {"animal": [animal], "section": [section], "region": [region], "area": [area], "nfos": [nfos], "ntrap": [ntrap], "ncoloc": [ncoloc]}
+            # features.append(pd.DataFrame(section_data))
    
     df = pd.concat(features, ignore_index=True)
 
@@ -198,6 +268,10 @@ if __name__ == "__main__":
         animals_to_process.append(animal)
 
     logger.info("Animals being processed are: {}".format(animals_to_process))
+
+    if args_dict["dummy_run"]:
+        print("This is a dummy run to check arguments etc")
+        sys.exit(2)
 
     if len(animals_to_process) > 0:
         if args_dict["threaded"]:
