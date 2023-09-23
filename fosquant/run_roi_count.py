@@ -47,7 +47,7 @@ def parse_args(argv, config_data):
         elif opt in ("-t", "--threaded"):
             args_dict["threaded"] = True 
         elif opt in ("-f", "fos_threshold"):
-            args_dict["fos_threshold"] = arg
+            args_dict["fos_threshold"] = float(arg)
         elif opt in ("-r", "region"):
             args_dict["region"] = arg
         elif opt in ("-d", "dummy_run"):
@@ -74,27 +74,22 @@ def get_sections_from_rois(roidata):
 def get_roi_coords(roi, scale_factor):
 
     if roi["type"] == "polygon":
-        y = [i*scale_factor for i in roi["x"]]
-        x = [i*scale_factor for i in roi["y"]]
+        x = [i*scale_factor for i in roi["x"]]
+        y = [i*scale_factor for i in roi["y"]]
         xy = [(x,y) for x,y in zip(x,y)]
 
     elif roi["type"] == "rectangle":
         
-        y1, y2 = [i*scale_factor for i in (roi["left"], roi["left"]+roi["width"])]
-        x1, x2 = [i*scale_factor for i in (roi["top"], roi["top"]+roi["height"])]
+        x1, x2 = [i*scale_factor for i in (roi["left"], roi["left"]+roi["width"])]
+        y1, y2 = [i*scale_factor for i in (roi["top"], roi["top"]+roi["height"])]
 
         xy = [(x1,y1), (x2,y1), (x2,y2), (x1,y2)]
-    
+
     return xy
 
-def count_neurons(im, roi_coords, verbose=False, threshold=0):
+def count_neurons(im, roi_coords, verbose=False):
 
-    # first get rid of cellrois that are outside roi to be counted, e.g. multiply by zero
-
-    # if threshold > 0:
-
-
-    mask = polygon2mask(im.shape, roi_coords)
+    mask = polygon2mask(im.shape, [(y,x) for x,y in roi_coords])
     masked_image = im * mask
     
     ncells = len(np.unique(masked_image)) - 1
@@ -116,30 +111,22 @@ def get_coloc(im1, im2, area_threshold = 8, verbose=False):
     
     return ncoloc
 
-def get_clipped_im(im_fos, im_trap, roi, scale_factor):
+def get_clipped_im(im, xy):
 
-    roi_min_x, roi_max_x = np.min(roi["x"])*scale_factor, np.max(roi["x"])*scale_factor
-    roi_min_y, roi_max_y = np.min(roi["y"])*scale_factor, np.max(roi["y"])*scale_factor
+    x = [x for x, y in xy]
+    y = [y for x, y in xy]
 
-    im_fos_out = im_fos[roi_min_y:roi_max_y, roi_min_x:roi_max_x]
-    im_trap_out = im_trap[roi_min_y:roi_max_y, roi_min_x:roi_max_x]
+    roi_min_x, roi_max_x = np.min(x), np.max(x)
+    roi_min_y, roi_max_y = np.min(y), np.max(y)
 
-    x_rescaled = [x*scale_factor - roi_min_x for x in roi["x"]]
-    y_rescaled = [y*scale_factor - roi_min_y for y in roi["y"]]
-    
-    print(roi_min_x)
-    print(roi["x"])
-    print(x_rescaled)
+    im_out = im[roi_min_y:roi_max_y, roi_min_x:roi_max_x]
+
+    x_rescaled = [x - roi_min_x for x in x]
+    y_rescaled = [y - roi_min_y for y in y]
 
     xy_rescaled = [(x,y) for x,y in zip(x_rescaled, y_rescaled)]
 
-    return im_fos_out, im_trap_out, xy_rescaled
-
-def normalize_image(image):
-    
-    normed_im = image/np.max(image) * 255
-    
-    return np.clip(normed_im, 0, 255)
+    return im_out, xy_rescaled
 
 def process_rois(folder, animal, rois=[], verbose=False):
 
@@ -166,8 +153,8 @@ def process_rois(folder, animal, rois=[], verbose=False):
         im_low = imread(lowrespath / lowres)
 
         if args_dict["fos_threshold"] > 0:
-            print("reading in...")
-            # read in png of raw fos signal for calculating mean
+            print("reading in raw fos image")
+            im_fos_raw = imread(hirespath / "chan1" / "{}.png".format(png.split("_cp")[0]))
 
         scale_factor = int(im_fos.shape[0] / im_low.shape[0])
 
@@ -181,38 +168,25 @@ def process_rois(folder, animal, rois=[], verbose=False):
 
             xy = get_roi_coords(roidata[roi], scale_factor)
 
-            im_fos_rescaled, im_trap_rescaled, xy_rescaled = get_clipped_im(im_fos, im_trap, roidata[roi], scale_factor=scale_factor)
+            im_fos_rescaled, xy_rescaled = get_clipped_im(im_fos, xy)
+            im_trap_rescaled, _ = get_clipped_im(im_trap, xy)
 
-            imsave(".//testim.png", im_trap_rescaled)
-            print(type(xy), len(xy))
-            print(type(xy_rescaled), len(xy_rescaled))
+            if args_dict["fos_threshold"] > 0:
+                im_fos_raw_rescaled, _ = get_clipped_im(im_fos_raw, xy)
 
-            # clip all images to roi, keep originals
-            # potentially keep the same size but just turn areas outside rois to zero OR
-            # clip to roi boundaries and update xy coords
+                im_fos_rescaled = make_thresholded_mask(im_fos_raw_rescaled, im_fos_rescaled, xy_rescaled, threshold=args_dict["fos_threshold"])
+            
+            nfos, masked_fos = count_neurons(im_fos_rescaled, xy_rescaled, verbose=verbose)
+            ntrap_old, _ = count_neurons(im_trap, xy, verbose=verbose)
+            ntrap, masked_trap = count_neurons(im_trap_rescaled, xy_rescaled, verbose=verbose)
 
-            # deal with fos thresholds... only keep fos cells above threshold
+            print(ntrap, "should match", ntrap_old)
+            ncoloc = get_coloc(masked_fos, masked_trap, verbose=verbose)
 
-            # save images during the process for checking
-            # make fig with roi over fullsize fig, roi zoomed in on fos on trap, on theshold fos, colocalized, print number of neurons...
+            area = np.sum(polygon2mask(im_fos.shape, xy))
 
-
-
-            # if args_dict["fos_threshold"] > 0:
-            #     nfos, masked_fos = count_neurons(im_fos, xy, verbose=verbose, threshold=args_dict["fos_threshold"])
-            # else:
-            #     nfos, masked_fos = count_neurons(im_fos, xy, verbose=verbose)
-
-            ntrap, masked_trap = count_neurons(im_trap, xy, verbose=verbose)
-            ntrap2, _ = count_neurons(im_trap_rescaled, xy_rescaled, verbose=verbose)
-
-            print(ntrap, ntrap2)
-            # ncoloc = get_coloc(masked_fos, masked_trap, verbose=verbose)
-
-            # area = np.sum(polygon2mask(im_fos.shape, xy))
-
-            # section_data = {"animal": [animal], "section": [section], "region": [region], "area": [area], "nfos": [nfos], "ntrap": [ntrap], "ncoloc": [ncoloc]}
-            # features.append(pd.DataFrame(section_data))
+            section_data = {"animal": [animal], "section": [section], "region": [region], "area": [area], "nfos": [nfos], "ntrap": [ntrap], "ncoloc": [ncoloc]}
+            features.append(pd.DataFrame(section_data))
    
     df = pd.concat(features, ignore_index=True)
 
