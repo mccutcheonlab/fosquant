@@ -156,7 +156,8 @@ def get_mean_rois_vect(im, im_rois):
     # Ensure im_out is of the same data type as im
     im_out = im_out.astype(im.dtype)
 
-    print(np.percentile(roi_means, [1,10,25,50,75,90,99]))
+    # Uncomment to print quantiles of roi means, useful for thinking about appropriate threshold
+    # print(np.percentile(roi_means, [1,10,25,50,75,90,99]))
 
     return im_out, roi_means
 

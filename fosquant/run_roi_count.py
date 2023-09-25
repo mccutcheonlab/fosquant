@@ -25,9 +25,10 @@ def parse_args(argv, config_data):
     args_dict["fos_threshold"] = 0
     args_dict["region"] = ""
     args_dict["dummy_run"] = False
+    args_dict["save_suffix"] = ""
 
     try:
-        opts, args = getopt.getopt(argv[1:], "a:ivotf:r:d")
+        opts, args = getopt.getopt(argv[1:], "a:ivotf:r:ds:")
     except:
         print(arg_help)
         sys.exit(2)
@@ -52,6 +53,8 @@ def parse_args(argv, config_data):
             args_dict["region"] = arg
         elif opt in ("-d", "dummy_run"):
             args_dict["dummy_run"] = True
+        elif opt in ("-s", "save_suffix"):
+            args_dict["save_suffix"] = str(arg)
     
     print("Arguments parsed successfully")
     
@@ -272,7 +275,7 @@ if __name__ == "__main__":
     if not results_folder.exists():
         os.mkdir(results_folder)
 
-    df_main.to_csv(results_folder / "df_user_counts.csv")
+    df_main.to_csv(results_folder / "df_user_counts{}.csv".format(args_dict["save_suffix"]))
 
     print(df_main.head())
 
