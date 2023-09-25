@@ -122,8 +122,6 @@ def get_clipped_im(im, xy):
     roi_min_x, roi_max_x = np.min(x), np.max(x)
     roi_min_y, roi_max_y = np.min(y), np.max(y)
 
-    print(roi_min_x, roi_max_x, roi_min_y, roi_max_y)
-
     im_out = im[roi_min_y:roi_max_y, roi_min_x:roi_max_x]
 
     x_rescaled = [x - roi_min_x for x in x]
@@ -185,7 +183,6 @@ def process_rois(folder, animal, rois=[], verbose=False):
             ntrap_old, _ = count_neurons(im_trap, xy, verbose=verbose)
             ntrap, masked_trap = count_neurons(im_trap_rescaled, xy_rescaled, verbose=verbose)
 
-            print(ntrap, "should match", ntrap_old)
             ncoloc = get_coloc(masked_fos, masked_trap, verbose=verbose)
 
             area = np.sum(polygon2mask(im_fos.shape, xy))
