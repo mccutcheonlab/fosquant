@@ -77,14 +77,14 @@ def get_sections_from_rois(roidata):
 def get_roi_coords(roi, scale_factor):
 
     if roi["type"] == "polygon":
-        x = [i*scale_factor for i in roi["x"]]
-        y = [i*scale_factor for i in roi["y"]]
+        x = [int(i*scale_factor) for i in roi["x"]]
+        y = [int(i*scale_factor) for i in roi["y"]]
         xy = [(x,y) for x,y in zip(x,y)]
 
     elif roi["type"] == "rectangle":
         
-        x1, x2 = [i*scale_factor for i in (roi["left"], roi["left"]+roi["width"])]
-        y1, y2 = [i*scale_factor for i in (roi["top"], roi["top"]+roi["height"])]
+        x1, x2 = [int(i*scale_factor) for i in (roi["left"], roi["left"]+roi["width"])]
+        y1, y2 = [int(i*scale_factor) for i in (roi["top"], roi["top"]+roi["height"])]
 
         xy = [(x1,y1), (x2,y1), (x2,y2), (x1,y2)]
 
@@ -121,6 +121,8 @@ def get_clipped_im(im, xy):
 
     roi_min_x, roi_max_x = np.min(x), np.max(x)
     roi_min_y, roi_max_y = np.min(y), np.max(y)
+
+    print(roi_min_x, roi_max_x, roi_min_y, roi_max_y)
 
     im_out = im[roi_min_y:roi_max_y, roi_min_x:roi_max_x]
 
