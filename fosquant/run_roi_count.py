@@ -131,7 +131,7 @@ def get_clipped_im(im, xy):
 
     return im_out, xy_rescaled
 
-def process_rois(folder, animal, rois=[], verbose=False):
+def process_rois(folder, animal, threshold, rois=[], verbose=False):
 
     # set folder names
     hirespath = folder / animal / "hires"
@@ -186,6 +186,10 @@ def process_rois(folder, animal, rois=[], verbose=False):
             ncoloc = get_coloc(masked_fos, masked_trap, verbose=verbose)
 
             area = np.sum(polygon2mask(im_fos.shape, xy))
+            print(im_fos.shape)
+            print(xy)
+            print(area)
+            # need to change xy but just for rectangles or for all?
 
             section_data = {"animal": [animal], "section": [section], "region": [region], "area": [area], "nfos": [nfos], "ntrap": [ntrap], "ncoloc": [ncoloc]}
             features.append(pd.DataFrame(section_data))
@@ -250,8 +254,9 @@ if __name__ == "__main__":
         sys.exit(2)
 
     if len(animals_to_process) > 0:
+        
         if args_dict["threaded"]:
-            pool_args = [(folder, animal) for animal in animals_to_process]
+            pool_args = [(folder, animal, args_dict) for animal in animals_to_process]
 
             pool_size = cpu_count()
             with Pool(processes=pool_size) as pool:
@@ -259,7 +264,7 @@ if __name__ == "__main__":
         else:
             list_of_pooled_dfs = []
             for animal in animals_to_process:
-                list_of_pooled_dfs.append(process_rois(folder, animal, verbose=args_dict["verbose"]))
+                list_of_pooled_dfs.append(process_rois(folder, animal, args_dict, verbose=args_dict["verbose"]))
 
         df_main = pd.concat(list_of_dfs+list_of_pooled_dfs)
     else:
