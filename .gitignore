@@ -163,3 +163,12 @@ test*.ipynb
 
 *.json
 
+data\crops\*
+
+*.ets
+*.vsi
+*.zip
+*.jpg
+*.png
+
+
