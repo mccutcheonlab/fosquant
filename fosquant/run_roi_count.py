@@ -7,7 +7,7 @@ from pathlib import Path
 from read_roi import read_roi_zip
 import numpy as np
 from skimage.draw import polygon2mask
-from skimage.io import imread
+from skimage.io import imread, imshow, imsave
 from skimage.measure import find_contours
 import pandas as pd
 from multiprocessing import Pool, cpu_count
@@ -22,9 +22,13 @@ def parse_args(argv, config_data):
     args_dict["verbose"] = False
     args_dict["overwrite"] = False
     args_dict["threaded"] = False
+    args_dict["fos_threshold"] = 0
+    args_dict["region"] = ""
+    args_dict["dummy_run"] = False
+    args_dict["save_suffix"] = ""
 
     try:
-        opts, args = getopt.getopt(argv[1:], "a:ivot")
+        opts, args = getopt.getopt(argv[1:], "a:ivotf:r:ds:")
     except:
         print(arg_help)
         sys.exit(2)
@@ -43,7 +47,15 @@ def parse_args(argv, config_data):
             args_dict["overwrite"] = True 
         elif opt in ("-t", "--threaded"):
             args_dict["threaded"] = True 
-
+        elif opt in ("-f", "fos_threshold"):
+            args_dict["fos_threshold"] = float(arg)
+        elif opt in ("-r", "region"):
+            args_dict["region"] = arg
+        elif opt in ("-d", "dummy_run"):
+            args_dict["dummy_run"] = True
+        elif opt in ("-s", "save_suffix"):
+            args_dict["save_suffix"] = str(arg)
+    
     print("Arguments parsed successfully")
     
     return args_dict
@@ -65,22 +77,22 @@ def get_sections_from_rois(roidata):
 def get_roi_coords(roi, scale_factor):
 
     if roi["type"] == "polygon":
-        y = [i*scale_factor for i in roi["x"]]
-        x = [i*scale_factor for i in roi["y"]]
+        x = [int(i*scale_factor) for i in roi["x"]]
+        y = [int(i*scale_factor) for i in roi["y"]]
         xy = [(x,y) for x,y in zip(x,y)]
 
     elif roi["type"] == "rectangle":
         
-        y1, y2 = [i*scale_factor for i in (roi["left"], roi["left"]+roi["width"])]
-        x1, x2 = [i*scale_factor for i in (roi["top"], roi["top"]+roi["height"])]
+        x1, x2 = [int(i*scale_factor) for i in (roi["left"], roi["left"]+roi["width"])]
+        y1, y2 = [int(i*scale_factor) for i in (roi["top"], roi["top"]+roi["height"])]
 
         xy = [(x1,y1), (x2,y1), (x2,y2), (x1,y2)]
-    
+
     return xy
 
 def count_neurons(im, roi_coords, verbose=False):
-    
-    mask = polygon2mask(im.shape, roi_coords)
+
+    mask = polygon2mask(im.shape, [(y,x) for x,y in roi_coords])
     masked_image = im * mask
     
     ncells = len(np.unique(masked_image)) - 1
@@ -102,7 +114,25 @@ def get_coloc(im1, im2, area_threshold = 8, verbose=False):
     
     return ncoloc
 
-def process_rois(folder, animal, rois=[], verbose=False):
+def get_clipped_im(im, xy):
+
+    x = [x for x, y in xy]
+    y = [y for x, y in xy]
+
+    roi_min_x, roi_max_x = np.min(x), np.max(x)
+    roi_min_y, roi_max_y = np.min(y), np.max(y)
+
+    im_out = im[roi_min_y:roi_max_y, roi_min_x:roi_max_x]
+
+    x_rescaled = [x - roi_min_x for x in x]
+    y_rescaled = [y - roi_min_y for y in y]
+
+    xy_rescaled = [(x,y) for x,y in zip(x_rescaled, y_rescaled)]
+
+    return im_out, xy_rescaled
+
+def process_rois(folder, animal, threshold, rois=[], verbose=False):
+
     # set folder names
     hirespath = folder / animal / "hires"
     lowrespath = folder / animal / "lowres"
@@ -125,21 +155,41 @@ def process_rois(folder, animal, rois=[], verbose=False):
         im_trap = imread(hirespath / "chan2" / png)
         im_low = imread(lowrespath / lowres)
 
+        if args_dict["fos_threshold"] > 0:
+            print("reading in raw fos image")
+            im_fos_raw = imread(hirespath / "chan1" / "{}.png".format(png.split("_cp")[0]))
+
         scale_factor = int(im_fos.shape[0] / im_low.shape[0])
 
         for roi in roidata:
             roi_section, region = parse_roi_name(roi)
+            if args_dict["region"] not in region:
+                continue
             if roi_section != section:
                 continue
             print(animal, section, region)
 
             xy = get_roi_coords(roidata[roi], scale_factor)
 
-            nfos, masked_fos = count_neurons(im_fos, xy, verbose=verbose)
-            ntrap, masked_trap = count_neurons(im_trap, xy, verbose=verbose)
+            im_fos_rescaled, xy_rescaled = get_clipped_im(im_fos, xy)
+            im_trap_rescaled, _ = get_clipped_im(im_trap, xy)
+
+            if args_dict["fos_threshold"] > 0:
+                im_fos_raw_rescaled, _ = get_clipped_im(im_fos_raw, xy)
+
+                im_fos_rescaled = make_thresholded_mask(im_fos_raw_rescaled, im_fos_rescaled, xy_rescaled, threshold=args_dict["fos_threshold"])
+            
+            nfos, masked_fos = count_neurons(im_fos_rescaled, xy_rescaled, verbose=verbose)
+            ntrap_old, _ = count_neurons(im_trap, xy, verbose=verbose)
+            ntrap, masked_trap = count_neurons(im_trap_rescaled, xy_rescaled, verbose=verbose)
+
             ncoloc = get_coloc(masked_fos, masked_trap, verbose=verbose)
 
             area = np.sum(polygon2mask(im_fos.shape, xy))
+            print(im_fos.shape)
+            print(xy)
+            print(area)
+            # need to change xy but just for rectangles or for all?
 
             section_data = {"animal": [animal], "section": [section], "region": [region], "area": [area], "nfos": [nfos], "ntrap": [ntrap], "ncoloc": [ncoloc]}
             features.append(pd.DataFrame(section_data))
@@ -199,9 +249,14 @@ if __name__ == "__main__":
 
     logger.info("Animals being processed are: {}".format(animals_to_process))
 
+    if args_dict["dummy_run"]:
+        print("This is a dummy run to check arguments etc")
+        sys.exit(2)
+
     if len(animals_to_process) > 0:
+        
         if args_dict["threaded"]:
-            pool_args = [(folder, animal) for animal in animals_to_process]
+            pool_args = [(folder, animal, args_dict) for animal in animals_to_process]
 
             pool_size = cpu_count()
             with Pool(processes=pool_size) as pool:
@@ -209,7 +264,7 @@ if __name__ == "__main__":
         else:
             list_of_pooled_dfs = []
             for animal in animals_to_process:
-                list_of_pooled_dfs.append(process_rois(folder, animal, verbose=args_dict["verbose"]))
+                list_of_pooled_dfs.append(process_rois(folder, animal, args_dict, verbose=args_dict["verbose"]))
 
         df_main = pd.concat(list_of_dfs+list_of_pooled_dfs)
     else:
@@ -224,7 +279,7 @@ if __name__ == "__main__":
     if not results_folder.exists():
         os.mkdir(results_folder)
 
-    df_main.to_csv(results_folder / "df_user_counts.csv")
+    df_main.to_csv(results_folder / "df_user_counts{}.csv".format(args_dict["save_suffix"]))
 
     print(df_main.head())
 

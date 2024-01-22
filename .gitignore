@@ -151,7 +151,6 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
 
-data/*
 config.json
 config_hires.json
 config_lowres.json
@@ -161,7 +160,15 @@ test*.ipynb
 *.code-workspace
 
 *.tif
-*.png
 
 *.json
+
+data\crops\*
+
+*.ets
+*.vsi
+*.zip
+*.jpg
+*.png
+
 
