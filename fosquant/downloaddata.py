@@ -1,18 +1,3 @@
-# import sys
-# import getopt
-
-# import shutil
-# import subprocess
-# import json
-
-# from datetime import datetime
-
-
-
-# from helper_fx import *
-
-
-
 import sys
 from pathlib import Path
 import click
@@ -26,6 +11,13 @@ from helper_fx import setup_logger, check_existing_files
 
 sys.path.append("~/Github/fosquant/")
 
+import click
+import json
+import subprocess
+import sys
+from pathlib import Path
+import pandas as pd
+
 @click.command()
 @click.option("--config-file", type=str, default="config.json", help="A file containing config options. If not present are parsed correctly the script will exit.")
 @click.option("--animals", "-a", type=str, default="", help="List of animals to be processed")
@@ -33,6 +25,16 @@ sys.path.append("~/Github/fosquant/")
 @click.option("--get-data", "-d", type=bool, is_flag=True, help="If selected attempts to download datafiles from Azure")
 @click.option("--overwrite", type=bool, is_flag=True, help="Choose if you want the option to overwrite files")
 def download(config_file, animals, get_metafile, get_data, overwrite):
+    """
+    Downloads data and metafile from Azure based on the provided configuration file.
+
+    Args:
+        config_file (str): A file containing config options. If not present or parsed correctly, the script will exit.
+        animals (str): List of animals to be processed.
+        get_metafile (bool): If selected, attempts to download metafile from Azure.
+        get_data (bool): If selected, attempts to download datafiles from Azure.
+        overwrite (bool): Choose if you want the option to overwrite files.
+    """
     print("Downloading...")
     
     # finds and opens config file
@@ -124,37 +126,8 @@ def download(config_file, animals, get_metafile, get_data, overwrite):
             subprocess.run(["azcopy", "cp", urljoin(config_data["remote"], str(vsi_file_remote)), vsi_file_local])
             subprocess.run(["azcopy", "cp", urljoin(config_data["remote"], str(vsi_folder_remote)), animal_raw_path, "--recursive=true"])
             
-            
 if __name__ == "__main__":
     print("processing stuff")
     download()
-    
-
-
-
-
-
-
-
-
-#             vsi_folder_remote_stub = "_{}_".format(file.split(".")[0])
-#             vsi_folder_remote = os.path.join(config_data["remote"], remote_folder, vsi_folder_remote_stub)
-
-#             vsi_folder_local = "_{}_{}A_".format(animal, idx+1)
-
-#             subprocess.call("{} cp {} {}".format(path_to_azcopy, vsi_file_remote, vsi_file_local), shell=True)
-#             subprocess.call("{} cp {} {} --recursive=true".format(path_to_azcopy, vsi_folder_remote, animal_raw_path), shell=True)
-
-#             ### need to work out why I had these lines here ###
-#             # os.chdir(animal_raw_path)
-#             # # subprocess.call("mv {} {}".format(os.path.join(animal_raw_path, vsi_folder_remote_stub),
-#             # #                                   os.path.join(animal_raw_path, vsi_folder_local)), shell=True)
-#             # if os.path.exists(os.path.join(animal_raw_path, vsi_folder_local)):
-#             #     shutil.rmtree(vsi_folder_local)
-
-#             # os.rename(vsi_folder_remote_stub, vsi_folder_local)
-            
-#             # #need to fix this line
-#             # if not (os.path.exists(vsi_file_local)) or (os.path.exists(vsi_folder_local)):
-#             #     logger.debug("Failed to get file using azcopy. Check azcopy log.")
+    print("done")
 
