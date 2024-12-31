@@ -96,7 +96,7 @@ def check_existing_files(path_to_check, overwrite):
     else:
         return True
     
-def get_scaled_roi(roipath, series_hires=8, series_lowres=12):
+def get_scaled_roi(roipath, series_hires=8, series_lowres=12, **kwargs):
     """
     Get scaled regions of interest (ROIs) from a given ROI file.
 
@@ -111,13 +111,16 @@ def get_scaled_roi(roipath, series_hires=8, series_lowres=12):
     """
 
     roidata = read_roi_zip(roipath)
-    scale_factor = (series_hires - series_lowres)**2
+    if "scale_factor" in kwargs:
+        scale_factor = kwargs["scale_factor"]
+    else:
+        scale_factor = (series_hires - series_lowres)**2
 
     rois = {}
     for item in roidata:
         s = roidata[item]
-        print(s)
-        print(type(s))
+        # print(s)
+        # print(type(s))
         try:
             x, y, w, h = s["left"], s["top"], s["width"], s["height"]
         except KeyError:
