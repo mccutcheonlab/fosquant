@@ -26,9 +26,10 @@ def parse_args(argv, config_data):
     args_dict["region"] = ""
     args_dict["dummy_run"] = False
     args_dict["save_suffix"] = ""
+    args_dict["trap_only"] = False
 
     try:
-        opts, args = getopt.getopt(argv[1:], "a:ivotf:r:ds:")
+        opts, args = getopt.getopt(argv[1:], "a:ivotf:r:ds:p")
     except:
         print(arg_help)
         sys.exit(2)
@@ -55,6 +56,8 @@ def parse_args(argv, config_data):
             args_dict["dummy_run"] = True
         elif opt in ("-s", "save_suffix"):
             args_dict["save_suffix"] = str(arg)
+        elif opt in ("-p", "trap_only"):
+            args_dict["trap_only"] = True
     
     print("Arguments parsed successfully")
     
