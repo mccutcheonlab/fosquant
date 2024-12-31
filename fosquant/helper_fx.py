@@ -11,6 +11,15 @@ from datetime import datetime
 from read_roi import read_roi_zip
 
 def flatten_list(listoflists):
+    """
+    Flattens a list of lists into a single list.
+
+    Args:
+        listoflists (list): A list of lists.
+
+    Returns:
+        list: A flattened list.
+    """
     flat_list = [item for sublist in listoflists for item in sublist]
     return flat_list
 
@@ -88,6 +97,18 @@ def check_existing_files(path_to_check, overwrite):
         return True
     
 def get_scaled_roi(roipath, series_hires=8, series_lowres=12):
+    """
+    Get scaled regions of interest (ROIs) from a given ROI file.
+
+    Args:
+        roipath (str): The path to the ROI file.
+        series_hires (int): The high-resolution series number.
+        series_lowres (int): The low-resolution series number.
+
+    Returns:
+        dict: A dictionary containing the scaled ROIs, where the keys are the ROI names and the values are tuples
+              representing the scaled coordinates (x, y, width, height) of each ROI.
+    """
 
     roidata = read_roi_zip(roipath)
     scale_factor = (series_hires - series_lowres)**2
@@ -111,6 +132,15 @@ def get_scaled_roi(roipath, series_hires=8, series_lowres=12):
     return rois
 
 def get_rois(path):
+    """
+    Get a list of ROI names from ROIs.zip files in the specified path.
+
+    Args:
+        path (str): The path to the directory containing the ROIs.zip files.
+
+    Returns:
+        list: A list of ROI names extracted from the ROIs.zip files.
+    """
     roifiles = [os.path.join(path,f) for f in os.listdir(path) if f.endswith("ROIs.zip")]
 
     rois = []
@@ -162,7 +192,19 @@ def get_mean_rois_vect(im, im_rois):
     return im_out, roi_means
 
 def make_thresholded_mask(im, im_mask, roi_coords, threshold=0):
+    """
+    Creates a thresholded mask based on the mean intensity of the image within the specified region of interest (ROI).
 
+    Args:
+        im (numpy.ndarray): The input image.
+        im_mask (numpy.ndarray): The binary mask indicating the region of interest.
+        roi_coords (list): The coordinates of the ROI polygon.
+        threshold (float, optional): The threshold value for the mean intensity. Defaults to 0.
+
+    Returns:
+        numpy.ndarray: The thresholded mask.
+
+    """
     mask = polygon2mask(im.shape, roi_coords)
     im_mask_roi = im_mask * mask
 
@@ -173,5 +215,14 @@ def make_thresholded_mask(im, im_mask, roi_coords, threshold=0):
     return im_mask * im_mean_mask
 
 def normalize_image(image):
+    """
+    Normalize the input image by dividing it by the maximum value and scaling it to the range [0, 255].
+
+    Parameters:
+    image (numpy.ndarray): The input image.
+
+    Returns:
+    numpy.ndarray: The normalized image.
+    """
     normed_im = image/np.max(image) * 255
     return np.clip(normed_im, 0, 255)
