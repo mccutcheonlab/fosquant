@@ -15,9 +15,9 @@ macro "Rename ROIs [R]" {
 	    roiManager("select", i);
 	    currentSection = startSection + i;
 	    if (currentSection < 10) {
-	    	sectionNumber = "_s00" + currentSection;
+	    	sectionNumber = "s00" + currentSection;
 	    } else {
-	    	sectionNumber = "_s0" + currentSection;
+	    	sectionNumber = "s0" + currentSection;
 	    }
 	    roiManager("rename", sectionNumber)
 	}
