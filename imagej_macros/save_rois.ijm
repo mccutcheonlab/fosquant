@@ -11,6 +11,7 @@ macro "Save ROIs [S]" {
 		filename = getInfo("image.filename");
 	
 		basename = replace(filename, ".vsi", "");
+		basename = replace(basename, ".tif", "");
 		roipath = path + File.separator + basename + roiSuffix + "_ROIs.zip";
 	}
 	print(roipath); 
