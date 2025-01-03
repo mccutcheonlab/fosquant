@@ -16,7 +16,7 @@ def get_random_png_crops(folder, chan=1, n=20, dims=(500,500)):
     if not os.path.exists(crops_folder):
         os.makedirs(crops_folder)
         
-    animal_dirs = [d for d in os.listdir(folder) if d.startswith("FT")]
+    animal_dirs = [d for d in Path(folder).iterdir() if d.is_dir() and d.name.startswith("F")]
     random.shuffle(animal_dirs)
     print(animal_dirs)
 
@@ -43,7 +43,8 @@ def get_random_png_crops(folder, chan=1, n=20, dims=(500,500)):
             pass
 
 if __name__ == "__main__":
-    project_dir = "/mnt/d/TestData/fostrap/FTIG/"
+    project_dir = "/mnt/d/TestData/fostrap/will/"
     project_dir = "/data/FTIG/"
+    project_dir = Path("D:/TestData/fostrap/will/")
 
     get_random_png_crops(project_dir, chan=1, n=100)

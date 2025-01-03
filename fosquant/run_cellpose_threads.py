@@ -1,6 +1,7 @@
 import sys
 import getopt
 import os
+from pathlib import Path
 import subprocess
 import json
 import numpy as np
@@ -52,16 +53,16 @@ def run_cellpose_on_single_png(png, animal, chan, model, diameter):
     # logger.info("Running cellpose on channel {} in {} for {}".format(chan, png, animal))
     cellpose_template_string = "python -m cellpose --image_path {} --pretrained_model {} --chan 0 --chan2 0 --diameter {} --verbose --use_gpu --save_png --fast_mode --no_npy --batch_size 8".format(png, model, diameter)
     print(cellpose_template_string)
-    # subprocess.call(cellpose_template_string.format(os.path.join(chan_path, png), model, diameter), shell=True)
+    subprocess.call(cellpose_template_string.format(os.path.join(chan_path, png), model, diameter), shell=True)
 
     return
 
 if __name__ == "__main__":
-    f = open("../config_cellpose_laptop_for_testing.json")
+    f = open("../config_cellpose.json")
     config_data = json.load(f)
     args_dict = parse_args(sys.argv, config_data)
 
-    folder = args_dict["project_dir"]
+    folder = Path(args_dict["project_dir"])
     logger = setup_logger(folder)
     os.chdir(folder)
 
@@ -106,8 +107,8 @@ if __name__ == "__main__":
                     print("failed")
                     continue
             
-            chan_path = os.path.join(folder, animal, "hires", "chan{}".format(chan))
-            model = os.path.join(folder, "models", args_dict["model_chan{}".format(chan)])
+            chan_path = folder / animal / "hires" / "chan{}".format(chan)
+            model = folder / "models" / args_dict["model_chan{}".format(chan)]
             diameter = args_dict["diameter_chan{}".format(chan)]
 
             mask_files = [f for f in os.listdir(chan_path) if "cp_masks" in f]
