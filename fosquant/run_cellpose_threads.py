@@ -58,7 +58,7 @@ def run_cellpose_on_single_png(png, animal, chan, model, diameter):
     return
 
 if __name__ == "__main__":
-    f = open("../config_cellpose.json")
+    f = open("../config_cellpose_clijvm.json")
     config_data = json.load(f)
     args_dict = parse_args(sys.argv, config_data)
 

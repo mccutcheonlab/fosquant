@@ -4,7 +4,7 @@ import logging
 
 import numpy as np
 
-from skimage.draw import polygon2mask
+# from skimage.draw import polygon2mask
 
 from datetime import datetime
 
