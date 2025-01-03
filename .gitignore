@@ -154,6 +154,7 @@ cython_debug/
 config.json
 config_hires.json
 config_lowres.json
+config_cellpose.json
 test*.py
 test*.ipynb
 
