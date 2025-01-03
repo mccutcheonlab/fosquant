@@ -1,8 +1,8 @@
 {
-    "project_dir": "/data/FTIG/",
-    "prefix": "FT",
-    "model_chan1": "CP_fos_20230908_114337_small",
+    "project_dir": "D:\\TestData\\fostrap\\will",
+    "prefix": "F",
+    "model_chan1": "CP_20250103_104621",
     "model_chan2": "CP_trap_20230303",
-    "diameter_chan1": 6.70,
+    "diameter_chan1": 9.346,
     "diameter_chan2": 9.82
 }
