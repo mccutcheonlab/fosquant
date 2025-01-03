@@ -51,14 +51,14 @@ def parse_args(argv, config_data):
 
 def run_cellpose_on_single_png(png, animal, chan, model, diameter):
     # logger.info("Running cellpose on channel {} in {} for {}".format(chan, png, animal))
-    cellpose_template_string = "python -m cellpose --image_path {} --pretrained_model {} --chan 0 --chan2 0 --diameter {} --verbose --use_gpu --save_png --fast_mode --no_npy --batch_size 8".format(png, model, diameter)
+    cellpose_template_string = "python -m cellpose --image_path {} --pretrained_model {} --chan 0 --chan2 0 --diameter {} --verbose --save_png --no_npy --batch_size 8".format(png, model, diameter)
     print(cellpose_template_string)
     subprocess.call(cellpose_template_string.format(os.path.join(chan_path, png), model, diameter), shell=True)
 
     return
 
 if __name__ == "__main__":
-    f = open("../config_cellpose_clijvm.json")
+    f = open("../config_cellpose.json")
     config_data = json.load(f)
     args_dict = parse_args(sys.argv, config_data)
 
