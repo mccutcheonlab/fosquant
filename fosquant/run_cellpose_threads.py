@@ -4,12 +4,17 @@ import os
 import subprocess
 import json
 import numpy as np
+from random import shuffle
 
 from time import perf_counter
 from multiprocessing import Pool, cpu_count
 
+from trompy import flatten_list
+
 from helper_fx import *
 from check_integrity import Check
+
+
 
 # get and parse options
 def parse_args(argv, config_data):
@@ -49,15 +54,15 @@ def parse_args(argv, config_data):
     return args_dict
 
 def run_cellpose_on_single_png(png, animal, chan, model, diameter):
-    # logger.info("Running cellpose on channel {} in {} for {}".format(chan, png, animal))
+    logger.info("Running cellpose on channel {} in {} for {}".format(chan, png, animal))
     cellpose_template_string = "python -m cellpose --image_path {} --pretrained_model {} --chan 0 --chan2 0 --diameter {} --verbose --use_gpu --save_png --fast_mode --no_npy --batch_size 8".format(png, model, diameter)
-    print(cellpose_template_string)
-    # subprocess.call(cellpose_template_string.format(os.path.join(chan_path, png), model, diameter), shell=True)
+    # print(cellpose_template_string)
+    subprocess.call(cellpose_template_string, shell=True)
 
     return
 
 if __name__ == "__main__":
-    f = open("../config_cellpose_laptop_for_testing.json")
+    f = open("../config_cellpose.json")
     config_data = json.load(f)
     args_dict = parse_args(sys.argv, config_data)
 
@@ -115,13 +120,14 @@ if __name__ == "__main__":
                 logger.info("Mask files detected in output folder. Exiting.")
                 continue
             
+            pngs_from_animal = []
             if args_dict["unanalyzed_files_only"]:
                 pngs = [f for f in os.listdir(chan_path) if (f.endswith(".png")) and ("_cp_masks" not in f)]
                 orphan_pngs = [png for png in pngs if png.split(".")[0] + "_cp_masks.png" not in os.listdir(chan_path)]
 
                 for png in orphan_pngs:
                     # Add png_path, animal, channel, model, diamter to list, pngs_to_analyze
-                    pngs_to_analyze.append((os.path.join(chan_path, png), animal, chan, model, diameter))
+                    pngs_from_animal.append((os.path.join(chan_path, png), animal, chan, model, diameter))
 
                     # logger.info("Running cellpose on channel {} in {} for {}".format(chan, png, animal))
                     # cellpose_template_string = "python -m cellpose --image_path {} --pretrained_model {} --chan 0 --chan2 0 --diameter {} --verbose --use_gpu --save_png --fast_mode --no_npy --batch_size 8"
@@ -131,12 +137,15 @@ if __name__ == "__main__":
                 # Add all png_paths, model, dimater to list, pngs_to_analyze
                 pngs = [f for f in os.listdir(chan_path) if (f.endswith(".png")) and ("_cp_masks" not in f)]
                 for png in pngs:
-                    pngs_to_analyze.append((os.path.join(chan_path, png), animal, chan, model, diameter))
+                    pngs_from_animal.append((os.path.join(chan_path, png), animal, chan, model, diameter))
                 # logger.info("Running cellpose on all files in {}".format(chan_path))
                 # cellpose_template_string = "python -m cellpose --dir {} --pretrained_model {} --chan 0 --chan2 0 --diameter {} --verbose --use_gpu --save_png --fast_mode --no_npy --batch_size 8"
                 # subprocess.call(cellpose_template_string.format(chan_path, model, diameter), shell=True)
+        
+        shuffle(pngs_from_animal)
+        pngs_to_analyze.append(pngs_from_animal)
 
-    print(pngs_to_analyze)
+    pngs_to_analyze = flatten_list(pngs_to_analyze)
 
     if len(pngs_to_analyze) > 0:
         if args_dict["threaded"]:
@@ -152,7 +161,7 @@ if __name__ == "__main__":
             for png in pngs_to_analyze:
                 run_cellpose_on_single_png(*png)
 
-
+logger.info("Finished running script successfully.")
 # python run_cellpose_threads.py -a FTxxx -c 1 -t -i
 
 # https://stackoverflow.com/questions/2629680/deciding-among-subprocess-multiprocessing-and-thread-in-python
