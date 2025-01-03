@@ -10,7 +10,7 @@ sh_seed = str(seed)[-5:]
 print("Seed was:", seed, "Short seed", sh_seed)
 
 
-def get_random_pngs(folder, chan=1, n=20, dims=(500,500)):
+def get_random_png_crops(folder, chan=1, n=20, dims=(500,500)):
 
     crops_folder = Path(folder) / "cropped" / "chan{}".format(chan)
     if not os.path.exists(crops_folder):
@@ -46,4 +46,4 @@ if __name__ == "__main__":
     project_dir = "/mnt/d/TestData/fostrap/FTIG/"
     project_dir = "/data/FTIG/"
 
-    get_random_pngs(project_dir, chan=1, n=20)
+    get_random_png_crops(project_dir, chan=1, n=100)
