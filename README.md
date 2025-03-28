@@ -1,6 +1,16 @@
 # fosquant
  Code for quantifiying and colocalising Fos and trapped neurons
 
+ ** revised readme for analysing data from Monell **
+ Plan for individual steps
+ * rename files (manually?)
+ * set up ROIs, rename ROIs (s001, etc) and make low-res sections
+ * make hires sections (both channels) - maybe at time of processing, read in from tiff file
+ * run cellpose (or alternative cell segmentation protocol on hires sections)
+ * draw user-defined ROIs using lowres sections
+ * count neurons in each user-defined ROI
+ * try registering sections maybe with https://imagej.net/plugins/bigwarp
+
 ## STEP 0 (Installation)
 Get fosquant repository from Git and install macros in ImageJ
 
