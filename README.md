@@ -16,6 +16,9 @@ Get fosquant repository from Git and install macros in ImageJ
 
 
 ## STEP 1 (project prep and splitting into sections (ROIs))
+
+Run install_macros.py to copy macrofiles from fosquant repo to imagej. Macros in StartupMacros.fiji.ijm will be automatically installed on startup. Others will have to be manually installed. If Fiji is open and install_macros is run, then it's necessary to manually install StartupMacros again.
+
 Put .vsi and associated folders for a single mouse into their own folder
 
 Macro - Load VSI
